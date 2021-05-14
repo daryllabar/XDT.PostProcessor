@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <metadata xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">    
+    <id>Xdt.PostProcessor</id>
+    <version>1.0.0.1</version>
+    <authors>Daryl LaBar</authors>
+    <icon>images\icon.png</icon>
+    <owners>Daryl LaBar</owners>
+    <summary>Adds additional Typings to the Delegate.XrmDefinitelyTyped typings.</summary>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Utilizes the Delegate.XrmDefinitelyTyped output to add additional typings.</description>
+    <projectUrl>https://github.com/daryllabar/XDT.PostProcessor/</projectUrl>
+    <releaseNotes></releaseNotes>
+    <copyright>Copyright 2021</copyright>    
+    <tags>XDT Dataverse TypesScript</tags>
+  </metadata>
+  <files>
+    <file src="..\Scripts\Run.ps1" target="content\XDT.PostProcessor" />
+    <file src="..\Scripts\Run.fsx" target="content\XDT.PostProcessor" />
+    <file src="bin\Release\*.dll" target="content\XDT.PostProcessor" />
+    <file src="bin\Release\*.exe" target="content\XDT.PostProcessor" />
+    <file src="bin\Release\*.config" target="content\XDT.PostProcessor" />
+    <file src="Images\icon.png" target="images\" />
+  </files>
+</package>
