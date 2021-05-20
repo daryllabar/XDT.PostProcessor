@@ -3,14 +3,14 @@
 namespace XDT.PostProcessor.Test
 {
     [TestClass]
-    public class LogicTests
+    public class TypingsExtensionLogicTests
     {
-        public Logic Sut { get; set; }
+        public TypingsExtensionLogic Sut { get; set; }
 
         [TestInitialize]
         public void Initialize()
         {
-            Sut = new Logic(Settings.Default);
+            Sut = new TypingsExtensionLogic(Settings.Default);
         }
 
         [TestMethod]

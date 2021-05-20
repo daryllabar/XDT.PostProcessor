@@ -5,14 +5,14 @@ using System.Linq;
 
 namespace XDT.PostProcessor
 {
-    public class Logic
+    public class TypingsExtensionLogic
     {
         private static readonly HashSet<string> NonNullableValueTypes = new HashSet<string>{
             "StringAttributeNames",
             "BooleanAttributeNames"
         };
         public Settings Settings { get; }
-        public Logic(Settings settings)
+        public TypingsExtensionLogic(Settings settings)
         {
             Settings = settings;
         }
@@ -47,7 +47,7 @@ namespace XDT.PostProcessor
             if (!Directory.Exists(extDir))
             {
                 Console.WriteLine("Creating Directory " + extDir);
-                Directory.CreateDirectory(extDir);
+                Directory.CreateDirectory(extDir ?? string.Empty);
             }
             File.WriteAllText(extFilePath, contents);
         }

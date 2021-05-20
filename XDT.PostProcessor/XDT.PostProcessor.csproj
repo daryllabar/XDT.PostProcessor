@@ -76,11 +76,12 @@
     <Compile Include="App_Packages\DLaB.Common.Source.1.2.0.11\VersionControl\VsTfsSourceControlProvider.cs" />
     <Compile Include="AttributeInfo.cs" />
     <Compile Include="Extensions.cs" />
-    <Compile Include="Logic.cs" />
+    <Compile Include="TypingsExtensionLogic.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="XdtFormParser.cs" />
+    <Compile Include="XrmQueryUpdateLogic.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
