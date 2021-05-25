@@ -10,7 +10,7 @@ namespace XDT.PostProcessor.Test
         [TestInitialize]
         public void Initialize()
         {
-            Sut = new XrmQueryUpdateLogic(new Settings(true){
+            Sut = new XrmQueryUpdateLogic(new Settings{
                 XrmQueryMakeEs6Compatible = false,
                 XrmQueryMakeWebpackCompatible = false
             });
