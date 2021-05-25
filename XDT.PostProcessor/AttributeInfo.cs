@@ -2,13 +2,14 @@
 {
     public struct AttributeInfo
     {
-        //public string AttributeTypesName { get; set; }
+        public string AttributeType { get; set; }
         public string Name { get; }
         public string ValueType { get; }
 
-        public AttributeInfo(string name, string valueType)
+        public AttributeInfo(string name, string attributeType, string valueType)
         {
             Name = name;
+            AttributeType = attributeType;
             ValueType = valueType;
         }
     }

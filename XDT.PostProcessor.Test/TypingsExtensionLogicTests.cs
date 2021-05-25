@@ -69,8 +69,30 @@ namespace XDT.PostProcessor.Test
     type Systemuser_TeamLookupAttributeNames = ""ownerid"";
     type TerritoryLookupAttributeNames = ""msdyn_serviceterritory"";
     type TransactioncurrencyLookupAttributeNames = ""transactioncurrencyid"";
+    type AttributeNames = Account_address1_freighttermscodeAttributeNames | Account_address1_shippingmethodcodeAttributeNames | Account_customertypecodeAttributeNames | Account_industrycodeAttributeNames | Account_ownershipcodeAttributeNames | Account_paymenttermscodeAttributeNames | Account_preferredcontactmethodcodeAttributeNames | AccountLookupAttributeNames | AnyAttributeNames | BooleanAttributeNames | ContactLookupAttributeNames | Msdyn_taxcodeLookupAttributeNames | Msdyn_travelchargetypeAttributeNames | Msdyn_workhourtemplateLookupAttributeNames | NumberAttributeNames | PricelevelLookupAttributeNames | StringAttributeNames | Systemuser_TeamLookupAttributeNames | TerritoryLookupAttributeNames | TransactioncurrencyLookupAttributeNames;
   }}
   interface {file.FormName} extends {file.XdtFullyQualifiedFormInterfaceName} {{
+    addOnChange(attributeName: {file.FormName}.Account_address1_freighttermscodeAttributeNames, handler: (context?: {xrm}.ExecutionContext<{xrm}.OptionSetAttribute<account_address1_freighttermscode>, undefined>) => any): void;
+    addOnChange(attributeName: {file.FormName}.Account_address1_shippingmethodcodeAttributeNames, handler: (context?: {xrm}.ExecutionContext<{xrm}.OptionSetAttribute<account_address1_shippingmethodcode>, undefined>) => any): void;
+    addOnChange(attributeName: {file.FormName}.Account_customertypecodeAttributeNames, handler: (context?: {xrm}.ExecutionContext<{xrm}.OptionSetAttribute<account_customertypecode>, undefined>) => any): void;
+    addOnChange(attributeName: {file.FormName}.Account_industrycodeAttributeNames, handler: (context?: {xrm}.ExecutionContext<{xrm}.OptionSetAttribute<account_industrycode>, undefined>) => any): void;
+    addOnChange(attributeName: {file.FormName}.Account_ownershipcodeAttributeNames, handler: (context?: {xrm}.ExecutionContext<{xrm}.OptionSetAttribute<account_ownershipcode>, undefined>) => any): void;
+    addOnChange(attributeName: {file.FormName}.Account_paymenttermscodeAttributeNames, handler: (context?: {xrm}.ExecutionContext<{xrm}.OptionSetAttribute<account_paymenttermscode>, undefined>) => any): void;
+    addOnChange(attributeName: {file.FormName}.Account_preferredcontactmethodcodeAttributeNames, handler: (context?: {xrm}.ExecutionContext<{xrm}.OptionSetAttribute<account_preferredcontactmethodcode>, undefined>) => any): void;
+    addOnChange(attributeName: {file.FormName}.AccountLookupAttributeNames, handler: (context?: {xrm}.ExecutionContext<{xrm}.LookupAttribute<""account"">, undefined>) => any): void;
+    addOnChange(attributeName: {file.FormName}.AnyAttributeNames, handler: (context?: {xrm}.ExecutionContext<{xrm}.Attribute<any>, undefined>) => any): void;
+    addOnChange(attributeName: {file.FormName}.BooleanAttributeNames, handler: (context?: {xrm}.ExecutionContext<{xrm}.OptionSetAttribute<boolean>, undefined>) => any): void;
+    addOnChange(attributeName: {file.FormName}.ContactLookupAttributeNames, handler: (context?: {xrm}.ExecutionContext<{xrm}.LookupAttribute<""contact"">, undefined>) => any): void;
+    addOnChange(attributeName: {file.FormName}.Msdyn_taxcodeLookupAttributeNames, handler: (context?: {xrm}.ExecutionContext<{xrm}.LookupAttribute<""msdyn_taxcode"">, undefined>) => any): void;
+    addOnChange(attributeName: {file.FormName}.Msdyn_travelchargetypeAttributeNames, handler: (context?: {xrm}.ExecutionContext<{xrm}.OptionSetAttribute<msdyn_travelchargetype>, undefined>) => any): void;
+    addOnChange(attributeName: {file.FormName}.Msdyn_workhourtemplateLookupAttributeNames, handler: (context?: {xrm}.ExecutionContext<{xrm}.LookupAttribute<""msdyn_workhourtemplate"">, undefined>) => any): void;
+    addOnChange(attributeName: {file.FormName}.NumberAttributeNames, handler: (context?: {xrm}.ExecutionContext<{xrm}.NumberAttribute, undefined>) => any): void;
+    addOnChange(attributeName: {file.FormName}.PricelevelLookupAttributeNames, handler: (context?: {xrm}.ExecutionContext<{xrm}.LookupAttribute<""pricelevel"">, undefined>) => any): void;
+    addOnChange(attributeName: {file.FormName}.StringAttributeNames, handler: (context?: {xrm}.ExecutionContext<{xrm}.Attribute<string>, undefined>) => any): void;
+    addOnChange(attributeName: {file.FormName}.Systemuser_TeamLookupAttributeNames, handler: (context?: {xrm}.ExecutionContext<{xrm}.LookupAttribute<""systemuser"" | ""team"">, undefined>) => any): void;
+    addOnChange(attributeName: {file.FormName}.TerritoryLookupAttributeNames, handler: (context?: {xrm}.ExecutionContext<{xrm}.LookupAttribute<""territory"">, undefined>) => any): void;
+    addOnChange(attributeName: {file.FormName}.TransactioncurrencyLookupAttributeNames, handler: (context?: {xrm}.ExecutionContext<{xrm}.LookupAttribute<""transactioncurrency"">, undefined>) => any): void;
+    addOnChange(attributeNames: {file.FormName}.AttributeNames[], handler: (context?: {xrm}.ExecutionContext<{xrm}.Attribute<any>, undefined>) => any): void;
     getValue(attributeName: {file.FormName}.Account_address1_freighttermscodeAttributeNames): account_address1_freighttermscode | null;
     getValue(attributeName: {file.FormName}.Account_address1_shippingmethodcodeAttributeNames): account_address1_shippingmethodcode | null;
     getValue(attributeName: {file.FormName}.Account_customertypecodeAttributeNames): account_customertypecode | null;

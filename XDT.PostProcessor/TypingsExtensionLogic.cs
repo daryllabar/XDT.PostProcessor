@@ -112,9 +112,16 @@ namespace XDT.PostProcessor
         private void WriteFormNamespace(List<string> contents, string formName, XdtFormParser parser)
         {
             contents.Add($"  namespace {formName} {{");
+            var types = new List<string>();
             foreach (var namesForType in parser.AttributeByTypeName.OrderBy(k => k.Key))
             {
-                contents.Add($@"    type {namesForType.Key} = {ToPipeStringDelimited(namesForType.Value.Select(v => v.Name))};");
+                types.Add(namesForType.Key);
+                contents.Add($@"    type {namesForType.Key} = {ToPipeStringDelimited(namesForType.Value.Select(v => v.Name), true)};");
+            }
+
+            if (types.Any())
+            {
+                contents.Add($@"    type AttributeNames = {ToPipeStringDelimited(types)};");
             }
             contents.Add("  }");
         }
@@ -122,24 +129,51 @@ namespace XDT.PostProcessor
         private void WriteFormInterface(List<string> contents, string table, string formType, string formName, XdtFormParser parser)
         {
             contents.Add($"  interface {formName} extends Form.{table}.{formType}.{formName} {{");
+            WriteAddOnChangeValues(contents, formName, parser);
+            WriteGetValues(contents, formName, parser);
+            WriteSetValues(contents, formName, parser);
+            contents.Add("  }"); 
+        }
+
+        private void WriteAddOnChangeValues(List<string> contents, string formName, XdtFormParser parser)
+        {
+            contents.AddRange(from namesForType in parser.AttributeByTypeName.OrderBy(k => k.Key)
+                let first = namesForType.Value.First()
+                let nullable = NonNullableValueTypes.Contains(namesForType.Key)
+                    ? string.Empty
+                    : " | null"
+                select $@"    addOnChange(attributeName: {formName}.{namesForType.Key}, handler: (context?: {Settings.XrmNamespacePrefix}.ExecutionContext<{first.AttributeType}, undefined>) => any): void;");
+            if (parser.AttributeByTypeName.Count > 0)
+            {
+                contents.Add($@"    addOnChange(attributeNames: {formName}.AttributeNames[], handler: (context?: {Settings.XrmNamespacePrefix}.ExecutionContext<{Settings.XrmNamespacePrefix}.Attribute<any>, undefined>) => any): void;");
+            }
+        }
+
+        private void WriteGetValues(List<string> contents, string formName, XdtFormParser parser)
+        {
             contents.AddRange(from namesForType in parser.AttributeByTypeName.OrderBy(k => k.Key)
                 let first = namesForType.Value.First()
                 let nullable = NonNullableValueTypes.Contains(namesForType.Key)
                     ? string.Empty
                     : " | null"
                 select $@"    getValue(attributeName: {formName}.{namesForType.Key}): {first.ValueType}{nullable};");
+        }
+
+        private void WriteSetValues(List<string> contents, string formName, XdtFormParser parser)
+        {
             contents.AddRange(from namesForType in parser.AttributeByTypeName.OrderBy(k => k.Key)
                 let first = namesForType.Value.First()
                 let nullable = NonNullableValueTypes.Contains(namesForType.Key)
                     ? string.Empty
                     : " | null"
                 select $@"    setValue(attributeName: {formName}.{namesForType.Key}, value: {first.ValueType}{nullable}, fireOnChange = true);");
-            contents.Add("  }"); 
         }
 
-        private string ToPipeStringDelimited(IEnumerable<string> values)
+        private string ToPipeStringDelimited(IEnumerable<string> values, bool applyTextWrap = false)
         {
-            return "\"" + string.Join("\" | \"", values) + "\"";
+            return applyTextWrap
+                ? "\"" + string.Join("\" | \"", values) + "\""
+                : string.Join(" | ", values);
         }
 
     }

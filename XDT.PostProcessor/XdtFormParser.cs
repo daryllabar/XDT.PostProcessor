@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing.Drawing2D;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Source.DLaB.Common;
 
 namespace XDT.PostProcessor
@@ -51,11 +47,17 @@ namespace XDT.PostProcessor
                         {
                             var name = line.SubstringByString(InterfaceGetAttributePrefix, "\"");
                             var type = line.SubstringByString(":").SubstringByString(":").Trim();
+                            var attributeType = type.Split(';')[0];
+                            if (attributeType.EndsWith(" | null"))
+                            {
+                                attributeType = attributeType.SubstringByString(0, " | null");
+                            }
+
                             if (type.StartsWith(xrm + ".Attribute<")
                                 || type.StartsWith(xrm + ".OptionSetAttribute<"))
                             {
                                 type = type.SubstringByString("<", ">");
-                                AttributeByTypeName.AddOrAppend(type.Capitalize() + "AttributeNames", new AttributeInfo(name, type));
+                                AttributeByTypeName.AddOrAppend(type.Capitalize() + "AttributeNames", new AttributeInfo(name, attributeType, type));
                             }
                             else if (type.StartsWith(xrm + ".LookupAttribute<"))
                             {
@@ -63,15 +65,15 @@ namespace XDT.PostProcessor
                                 var lookups = lookupName.Replace("\"", "").Split(new [] {'|', ' '}, StringSplitOptions.RemoveEmptyEntries);
                                 type = string.Join("_", lookups.Select(v => v.Capitalize()));
                                 var returnType = $"{xrm}.EntityReference<{string.Join(" | ", lookups.Select(v => $@"""{v}"""))}>";
-                            AttributeByTypeName.AddOrAppend(type.Capitalize() + "LookupAttributeNames", new AttributeInfo(name, returnType));
+                                AttributeByTypeName.AddOrAppend(type.Capitalize() + "LookupAttributeNames", new AttributeInfo(name, attributeType, returnType));
                             }
                             else if (type.StartsWith(xrm + ".NumberAttribute"))
                             {
-                                AttributeByTypeName.AddOrAppend("NumberAttributeNames", new AttributeInfo(name, "number"));
+                                AttributeByTypeName.AddOrAppend("NumberAttributeNames", new AttributeInfo(name, attributeType, "number"));
                             }
                             else if (type.StartsWith(xrm + ".DateAttribute"))
                             {
-                                AttributeByTypeName.AddOrAppend("DateAttributeNames", new AttributeInfo(name, "date"));
+                                AttributeByTypeName.AddOrAppend("DateAttributeNames", new AttributeInfo(name, attributeType, "date"));
                             }
                         }
 
