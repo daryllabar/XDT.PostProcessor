@@ -9,6 +9,11 @@ namespace XDT.PostProcessor.Test
 {
     public static class StringAssertExtensions
     {
+        public static void ShouldEqualWithDiff(this IEnumerable<string> actualValue, string expectedValue)
+        {
+            ShouldEqualWithDiff(string.Join(Environment.NewLine, actualValue), expectedValue, DiffStyle.Full, Console.Out);
+        }
+
         public static void ShouldEqualWithDiff(this string actualValue, string expectedValue)
         {
             ShouldEqualWithDiff(actualValue, expectedValue, DiffStyle.Full, Console.Out);

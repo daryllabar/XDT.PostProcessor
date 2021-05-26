@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System;
+using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace XDT.PostProcessor.Test
@@ -7,13 +8,17 @@ namespace XDT.PostProcessor.Test
     public class TypingsExtensionLogicTests
     {
         public TypingsExtensionLogic Sut { get; set; }
-        public string XdtXrm { get; set; }
+        public static FileHelper MainAccountForm { get; }
+
+        static TypingsExtensionLogicTests()
+        {
+            MainAccountForm = new FileHelper("account", "Main", "Account.d.ts", Settings.Default.FormNamespacePostfix);
+        }
 
         [TestInitialize]
         public void Initialize()
         {
             Sut = new TypingsExtensionLogic(new Settings());
-            XdtXrm = new Regex(Sut.Settings.XrmNamespaceRegEx).Replace(" Xrm ", Sut.Settings.XrmNamespaceOverride).Trim();
         }
 
         [TestMethod]
@@ -31,24 +36,18 @@ namespace XDT.PostProcessor.Test
         }
 
         [TestMethod]
-        public void Account_Should_GenerateAttributeTypeNames()
+        public void WriteFormNamespace_Account_Should_GenerateAttributeTypeNames()
         {
-            var file = new FileHelper("account", "Main", "Account.d.ts", Sut.Settings.FormNamespacePostfix);
-            var prefix = Sut.Settings.XrmNamespaceOverride;
-            Sut.Settings.XrmNamespaceOverride = null;
-            var contents = Sut.CreateFormExtContents(file.Table, file.FormType, file.FormName, file.Contents);
-            contents.ShouldEqualWithDiff(GetExpectedAccount(file, "Xrm"));
-
-            Sut.Settings.XrmNamespaceOverride = prefix;
-            Sut.UpdateDtFile(file.Contents);
-            contents = Sut.CreateFormExtContents(file.Table, file.FormType, file.FormName, file.Contents);
-            contents.ShouldEqualWithDiff(GetExpectedAccount(file, XdtXrm));
+            ExecuteForAllOptions(MainAccountForm, (file, parser, xrm)=>{
+                var output = new List<string>();
+                Sut.WriteFormNamespace(output, file.FormName, parser);
+                output.ShouldEqualWithDiff(GetExpectedAccountFormNamespace(file));
+            });
         }
 
-        private static string GetExpectedAccount(FileHelper file, string xrm)
+        private static string GetExpectedAccountFormNamespace(FileHelper file)
         {
-            var expected = $@"declare namespace {file.ExtensionNamespace} {{
-  namespace {file.FormName} {{
+            return $@"  namespace {file.FormName} {{
     type Account_address1_freighttermscodeAttributeNames = ""address1_freighttermscode"";
     type Account_address1_shippingmethodcodeAttributeNames = ""address1_shippingmethodcode"";
     type Account_customertypecodeAttributeNames = ""customertypecode"";
@@ -70,9 +69,22 @@ namespace XDT.PostProcessor.Test
     type TerritoryLookupAttributeNames = ""msdyn_serviceterritory"";
     type TransactioncurrencyLookupAttributeNames = ""transactioncurrencyid"";
     type AttributeNames = Account_address1_freighttermscodeAttributeNames | Account_address1_shippingmethodcodeAttributeNames | Account_customertypecodeAttributeNames | Account_industrycodeAttributeNames | Account_ownershipcodeAttributeNames | Account_paymenttermscodeAttributeNames | Account_preferredcontactmethodcodeAttributeNames | AccountLookupAttributeNames | AnyAttributeNames | BooleanAttributeNames | ContactLookupAttributeNames | Msdyn_taxcodeLookupAttributeNames | Msdyn_travelchargetypeAttributeNames | Msdyn_workhourtemplateLookupAttributeNames | NumberAttributeNames | PricelevelLookupAttributeNames | StringAttributeNames | Systemuser_TeamLookupAttributeNames | TerritoryLookupAttributeNames | TransactioncurrencyLookupAttributeNames;
-  }}
-  interface {file.FormName} extends {file.XdtFullyQualifiedFormInterfaceName} {{
-    addOnChange(attributeName: {file.FormName}.Account_address1_freighttermscodeAttributeNames, handler: (context?: {xrm}.ExecutionContext<{xrm}.OptionSetAttribute<account_address1_freighttermscode>, undefined>) => any): void;
+  }}";
+        }
+
+        [TestMethod]
+        public void WriteAddOnChangeValues_Account_Should_GenerateTypings()
+        {
+            ExecuteForAllOptions(MainAccountForm, (file, parser, xrm) => {
+                var output = new List<string>();
+                Sut.WriteAddOnChangeValues(output, file.FormName, parser);
+                output.ShouldEqualWithDiff(GetExpectedAccountFormInterfaceAddOnChange(file, xrm));
+            });
+        }
+
+        private static string GetExpectedAccountFormInterfaceAddOnChange(FileHelper file, string xrm)
+        {
+            return $@"    addOnChange(attributeName: {file.FormName}.Account_address1_freighttermscodeAttributeNames, handler: (context?: {xrm}.ExecutionContext<{xrm}.OptionSetAttribute<account_address1_freighttermscode>, undefined>) => any): void;
     addOnChange(attributeName: {file.FormName}.Account_address1_shippingmethodcodeAttributeNames, handler: (context?: {xrm}.ExecutionContext<{xrm}.OptionSetAttribute<account_address1_shippingmethodcode>, undefined>) => any): void;
     addOnChange(attributeName: {file.FormName}.Account_customertypecodeAttributeNames, handler: (context?: {xrm}.ExecutionContext<{xrm}.OptionSetAttribute<account_customertypecode>, undefined>) => any): void;
     addOnChange(attributeName: {file.FormName}.Account_industrycodeAttributeNames, handler: (context?: {xrm}.ExecutionContext<{xrm}.OptionSetAttribute<account_industrycode>, undefined>) => any): void;
@@ -92,8 +104,22 @@ namespace XDT.PostProcessor.Test
     addOnChange(attributeName: {file.FormName}.Systemuser_TeamLookupAttributeNames, handler: (context?: {xrm}.ExecutionContext<{xrm}.LookupAttribute<""systemuser"" | ""team"">, undefined>) => any): void;
     addOnChange(attributeName: {file.FormName}.TerritoryLookupAttributeNames, handler: (context?: {xrm}.ExecutionContext<{xrm}.LookupAttribute<""territory"">, undefined>) => any): void;
     addOnChange(attributeName: {file.FormName}.TransactioncurrencyLookupAttributeNames, handler: (context?: {xrm}.ExecutionContext<{xrm}.LookupAttribute<""transactioncurrency"">, undefined>) => any): void;
-    addOnChange(attributeNames: {file.FormName}.AttributeNames[], handler: (context?: {xrm}.ExecutionContext<{xrm}.Attribute<any>, undefined>) => any): void;
-    getValue(attributeName: {file.FormName}.Account_address1_freighttermscodeAttributeNames): account_address1_freighttermscode | null;
+    addOnChange(attributeNames: {file.FormName}.AttributeNames[], handler: (context?: {xrm}.ExecutionContext<{xrm}.Attribute<any>, undefined>) => any): void;";
+        }
+
+        [TestMethod]
+        public void WriteGetValues_Account_Should_GenerateTypings()
+        {
+            ExecuteForAllOptions(MainAccountForm, (file, parser, xrm) => {
+                var output = new List<string>();
+                Sut.WriteGetValues(output, file.FormName, parser);
+                output.ShouldEqualWithDiff(GetExpectedAccountFormInterfaceGetValue(file, xrm));
+            });
+        }
+
+        private static string GetExpectedAccountFormInterfaceGetValue(FileHelper file, string xrm)
+        {
+            return $@"    getValue(attributeName: {file.FormName}.Account_address1_freighttermscodeAttributeNames): account_address1_freighttermscode | null;
     getValue(attributeName: {file.FormName}.Account_address1_shippingmethodcodeAttributeNames): account_address1_shippingmethodcode | null;
     getValue(attributeName: {file.FormName}.Account_customertypecodeAttributeNames): account_customertypecode | null;
     getValue(attributeName: {file.FormName}.Account_industrycodeAttributeNames): account_industrycode | null;
@@ -112,8 +138,21 @@ namespace XDT.PostProcessor.Test
     getValue(attributeName: {file.FormName}.StringAttributeNames): string;
     getValue(attributeName: {file.FormName}.Systemuser_TeamLookupAttributeNames): {xrm}.EntityReference<""systemuser"" | ""team""> | null;
     getValue(attributeName: {file.FormName}.TerritoryLookupAttributeNames): {xrm}.EntityReference<""territory""> | null;
-    getValue(attributeName: {file.FormName}.TransactioncurrencyLookupAttributeNames): {xrm}.EntityReference<""transactioncurrency""> | null;
-    setValue(attributeName: {file.FormName}.Account_address1_freighttermscodeAttributeNames, value: account_address1_freighttermscode | null, fireOnChange = true);
+    getValue(attributeName: {file.FormName}.TransactioncurrencyLookupAttributeNames): {xrm}.EntityReference<""transactioncurrency""> | null;";
+        }
+
+        [TestMethod]
+        public void WriteSetValues_Account_Should_GenerateTypings()
+        {
+            ExecuteForAllOptions(MainAccountForm, (file, parser, xrm) => {
+                var output = new List<string>();
+                Sut.WriteSetValues(output, file.FormName, parser);
+                output.ShouldEqualWithDiff(GetExpectedAccountFormInterfaceSetValue(file, xrm));
+            });
+        }
+        private static string GetExpectedAccountFormInterfaceSetValue(FileHelper file, string xrm)
+        {
+            var expected = $@"    setValue(attributeName: {file.FormName}.Account_address1_freighttermscodeAttributeNames, value: account_address1_freighttermscode | null, fireOnChange = true);
     setValue(attributeName: {file.FormName}.Account_address1_shippingmethodcodeAttributeNames, value: account_address1_shippingmethodcode | null, fireOnChange = true);
     setValue(attributeName: {file.FormName}.Account_customertypecodeAttributeNames, value: account_customertypecode | null, fireOnChange = true);
     setValue(attributeName: {file.FormName}.Account_industrycodeAttributeNames, value: account_industrycode | null, fireOnChange = true);
@@ -132,18 +171,43 @@ namespace XDT.PostProcessor.Test
     setValue(attributeName: {file.FormName}.StringAttributeNames, value: string, fireOnChange = true);
     setValue(attributeName: {file.FormName}.Systemuser_TeamLookupAttributeNames, value: {xrm}.EntityReference<""systemuser"" | ""team""> | null, fireOnChange = true);
     setValue(attributeName: {file.FormName}.TerritoryLookupAttributeNames, value: {xrm}.EntityReference<""territory""> | null, fireOnChange = true);
-    setValue(attributeName: {file.FormName}.TransactioncurrencyLookupAttributeNames, value: {xrm}.EntityReference<""transactioncurrency""> | null, fireOnChange = true);
-  }}
-}}";
+    setValue(attributeName: {file.FormName}.TransactioncurrencyLookupAttributeNames, value: {xrm}.EntityReference<""transactioncurrency""> | null, fireOnChange = true);";
             return expected;
+        }
+
+        [TestMethod]
+        public void SingleLineFunctions_Account_Should_GenerateTypings()
+        {
+            ExecuteForAllOptions(MainAccountForm, (file, parser, xrm) => {
+                var output = new List<string>();
+                Sut.WriteRemoveOnChange(output, file.FormName, parser);
+                output.ShouldEqualWithDiff($"    removeOnChange(attributeName: {file.FormName}.AttributeNames | {file.FormName}.AttributeNames[], handler: (context?: {xrm}.ExecutionContext<{xrm}.Attribute<any>, undefined>) => any): void;");
+                output = new List<string>();
+                Sut.WriteFireOnChange(output, file.FormName, parser);
+                output.ShouldEqualWithDiff($"    fireOnChange(attributeName: {file.FormName}.AttributeNames): void;");
+            });
         }
 
         [TestMethod]
         public void XrmNamespace_Should_BeReplaced()
         {
             var file = new[] {"<start> Xrm xrmXrm XrmQuery <Xrm> ,Xrm <end>"};
+            var xrm = Sut.Settings.XrmNamespacePrefix;
             Assert.IsTrue(Sut.UpdateXrmNamespace(file, false));
-            file[0].ShouldEqualWithDiff($"<start> {XdtXrm} xrmXrm XrmQuery <{XdtXrm}> ,{XdtXrm} <end>");
+
+            file[0].ShouldEqualWithDiff($"<start> {xrm} xrmXrm XrmQuery <{xrm}> ,{xrm} <end>");
+        }
+
+        private void ExecuteForAllOptions(FileHelper file, Action<FileHelper, XdtFormParser, string> action)
+        {
+            var input = (string[])file.Contents.Clone();
+            Sut.UpdateDtFile(input);
+            var parser = new XdtFormParser(input, Sut.Settings);
+            action(file, parser, Sut.Settings.XrmNamespacePrefix);
+
+            Sut.Settings.XrmNamespaceOverride = null;
+            parser = new XdtFormParser(file.Contents, Sut.Settings);
+            action(file, parser, Sut.Settings.XrmNamespacePrefix);
         }
     }
 }
