@@ -75,6 +75,7 @@
     <Compile Include="App_Packages\DLaB.Common.Source.1.2.0.11\VersionControl\SourceControl.cs" />
     <Compile Include="App_Packages\DLaB.Common.Source.1.2.0.11\VersionControl\VsTfsSourceControlProvider.cs" />
     <Compile Include="AttributeInfo.cs" />
+    <Compile Include="ControlInfo.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="TypingsExtensionLogic.cs" />
     <Compile Include="Program.cs" />

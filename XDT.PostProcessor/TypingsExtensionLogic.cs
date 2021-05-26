@@ -112,17 +112,32 @@ namespace XDT.PostProcessor
         public void WriteFormNamespace(List<string> contents, string formName, XdtFormParser parser)
         {
             contents.Add($"  namespace {formName} {{");
+            var lines = new List<string>();
             var types = new List<string>();
-            foreach (var namesForType in parser.AttributeByTypeName.OrderBy(k => k.Key))
+            foreach (var namesForType in parser.AttributesByTypeName)
             {
                 types.Add(namesForType.Key);
-                contents.Add($@"    type {namesForType.Key} = {ToPipeStringDelimited(namesForType.Value.Select(v => v.Name), true)};");
+                lines.Add($@"    type {namesForType.Key} = {ToPipeStringDelimited(namesForType.Value.Select(v => v.Name), true)};");
             }
 
             if (types.Any())
             {
-                contents.Add($@"    type AttributeNames = {ToPipeStringDelimited(types)};");
+                lines.Add($@"    type AttributeNames = {ToPipeStringDelimited(types.OrderBy(n => n))};");
             }
+
+            types = new List<string>();
+            foreach (var namesForType in parser.ControlsByTypeName)
+            {
+                types.Add(namesForType.Key);
+                lines.Add($@"    type {namesForType.Key} = {ToPipeStringDelimited(namesForType.Value.Select(v => v.Name), true)};");
+            }
+
+            if (types.Any())
+            {
+                lines.Add($@"    type ControlNames = {ToPipeStringDelimited(types.OrderBy(n => n))};");
+            }
+
+            contents.AddRange(lines.OrderBy(l => l));
             contents.Add("  }");
         }
 
@@ -132,20 +147,22 @@ namespace XDT.PostProcessor
             WriteAddOnChangeValues(contents, formName, parser);
             WriteFireOnChange(contents, formName, parser);
             WriteGetValues(contents, formName, parser);
+            WriteGetVisible(contents, formName, parser);
             WriteRemoveOnChange(contents, formName, parser);
             WriteSetValues(contents, formName, parser);
+            WriteSetVisible(contents, formName, parser);
             contents.Add("  }"); 
         }
 
         public void WriteAddOnChangeValues(List<string> contents, string formName, XdtFormParser parser)
         {
-            contents.AddRange(from namesForType in parser.AttributeByTypeName.OrderBy(k => k.Key)
+            contents.AddRange(from namesForType in parser.AttributesByTypeName.OrderBy(k => k.Key)
                 let first = namesForType.Value.First()
                 let nullable = NonNullableValueTypes.Contains(namesForType.Key)
                     ? string.Empty
                     : " | null"
                 select $@"    addOnChange(attributeName: {formName}.{namesForType.Key}, handler: (context?: {Settings.XrmNamespacePrefix}.ExecutionContext<{first.AttributeType}, undefined>) => any): void;");
-            if (parser.AttributeByTypeName.Count > 0)
+            if (parser.AttributesByTypeName.Count > 0)
             {
                 contents.Add($@"    addOnChange(attributeNames: {formName}.AttributeNames[], handler: (context?: {Settings.XrmNamespacePrefix}.ExecutionContext<{Settings.XrmNamespacePrefix}.Attribute<any>, undefined>) => any): void;");
             }
@@ -153,7 +170,7 @@ namespace XDT.PostProcessor
 
         public void WriteFireOnChange(List<string> contents, string formName, XdtFormParser parser)
         {
-            if (parser.AttributeByTypeName.Count == 0)
+            if (parser.AttributesByTypeName.Count == 0)
             {
                 return;
             }
@@ -163,7 +180,7 @@ namespace XDT.PostProcessor
 
         public void WriteGetValues(List<string> contents, string formName, XdtFormParser parser)
         {
-            contents.AddRange(from namesForType in parser.AttributeByTypeName.OrderBy(k => k.Key)
+            contents.AddRange(from namesForType in parser.AttributesByTypeName.OrderBy(k => k.Key)
                 let first = namesForType.Value.First()
                 let nullable = NonNullableValueTypes.Contains(namesForType.Key)
                     ? string.Empty
@@ -171,9 +188,20 @@ namespace XDT.PostProcessor
                 select $@"    getValue(attributeName: {formName}.{namesForType.Key}): {first.ValueType}{nullable};");
         }
 
+        public void WriteGetVisible(List<string> contents, string formName, XdtFormParser parser)
+        {
+            var type = parser.GetAllAttributeAndControlNamesTypeUnion(formName);
+            if (string.IsNullOrWhiteSpace(type))
+            {
+                return;
+            }
+
+            contents.Add($@"    getVisible(name: {type}): boolean;");
+        }
+
         public void WriteRemoveOnChange(List<string> contents, string formName, XdtFormParser parser)
         {
-            if (parser.AttributeByTypeName.Count == 0)
+            if (parser.AttributesByTypeName.Count == 0)
             {
                 return;
             }
@@ -181,16 +209,27 @@ namespace XDT.PostProcessor
             contents.Add($@"    removeOnChange(attributeName: {formName}.AttributeNames | {formName}.AttributeNames[], handler: (context?: {Settings.XrmNamespacePrefix}.ExecutionContext<{Settings.XrmNamespacePrefix}.Attribute<any>, undefined>) => any): void;");
         }
 
-
         public void WriteSetValues(List<string> contents, string formName, XdtFormParser parser)
         {
-            contents.AddRange(from namesForType in parser.AttributeByTypeName.OrderBy(k => k.Key)
+            contents.AddRange(from namesForType in parser.AttributesByTypeName.OrderBy(k => k.Key)
                 let first = namesForType.Value.First()
                 let nullable = NonNullableValueTypes.Contains(namesForType.Key)
                     ? string.Empty
                     : " | null"
                 select $@"    setValue(attributeName: {formName}.{namesForType.Key}, value: {first.ValueType}{nullable}, fireOnChange = true);");
         }
+
+        public void WriteSetVisible(List<string> contents, string formName, XdtFormParser parser)
+        {
+            var type = parser.GetAllAttributeAndControlNamesTypeUnion(formName);
+            if (string.IsNullOrWhiteSpace(type))
+            {
+                return;
+            }
+
+            contents.Add($@"    setVisible(name: {type}, visible = true): void;");
+        }
+
         private string ToPipeStringDelimited(IEnumerable<string> values, bool applyTextWrap = false)
         {
             return applyTextWrap
