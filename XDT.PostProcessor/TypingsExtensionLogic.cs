@@ -96,7 +96,7 @@ namespace XDT.PostProcessor
 
         public string CreateFormExtContents(string table, string formType, string formName, string[] source)
         {
-            var form = new XdtFormParser().Parse(source, Settings.XrmNamespacePrefix);
+            var form = new XdtFormParser().Parse(source);
             var contents = new List<string>();
             WriteNamespace(contents, table, formType, formName, form);
             return string.Join(Environment.NewLine, contents);

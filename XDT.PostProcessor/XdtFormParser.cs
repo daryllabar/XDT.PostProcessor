@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Diagnostics.Eventing.Reader;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Source.DLaB.Common;
 
 namespace XDT.PostProcessor
@@ -16,7 +18,7 @@ namespace XDT.PostProcessor
             PostInterface
         }
 
-        public ParsedXdtForm Parse(string[] contents, string xrmPrefix) { 
+        public ParsedXdtForm Parse(string[] contents) { 
             var form = new ParsedXdtForm();
             if (contents.Length == 0)
             {
@@ -40,7 +42,7 @@ namespace XDT.PostProcessor
                             state = ParserState.PostInterface;
                         }
 
-                        ParseGetAttributeLine(form, line, xrmPrefix);
+                        ParseGetAttributeLine(form, line);
                         ParseGetControlLine(form, line);
 
                         break;
@@ -54,7 +56,7 @@ namespace XDT.PostProcessor
             return form;
         }
 
-        public void ParseGetAttributeLine(ParsedXdtForm form, string line, string xrm)
+        public void ParseGetAttributeLine(ParsedXdtForm form, string line)
         {
             if (!line.StartsWith(InterfaceGetAttributePrefix))
             {
@@ -62,34 +64,55 @@ namespace XDT.PostProcessor
             }
 
             var name = line.SubstringByString(InterfaceGetAttributePrefix, "\"");
-            var type = line.SubstringByString(":").SubstringByString(":").Trim();
-            var attributeType = type.Split(';')[0];
-            if (attributeType.EndsWith(" | null"))
-            {
-                attributeType = attributeType.SubstringByString(0, " | null");
-            }
+            var type = line.SubstringByString(":").SubstringByString(":").Trim().Split(';')[0];
+            var attributeType = type.EndsWith(" | null")
+                ? type.SubstringByString(0, " | null")
+                : type;
 
-            if (type.StartsWith(xrm + ".Attribute<")
-                || type.StartsWith(xrm + ".OptionSetAttribute<"))
+            var xrm = type.SubstringByString(0, ".");
+            type = type.SubstringByString(".");
+            var baseType = type.IndexOf('<')> -1
+                ? type.SubstringByString(0, "<")
+                : type;
+            switch (baseType)
             {
-                type = type.SubstringByString("<", ">");
-                form.AttributesByTypeName.AddOrAppend(type.Capitalize() + "AttributeNames", new AttributeInfo(name, attributeType, type));
-            }
-            else if (type.StartsWith(xrm + ".LookupAttribute<"))
-            {
-                var lookupName = type.SubstringByString("<", ">");
-                var lookups = lookupName.Replace("\"", "").Split(new[] {'|', ' '}, StringSplitOptions.RemoveEmptyEntries);
-                type = string.Join("_", lookups.Select(v => v.Capitalize()));
-                var returnType = $"{xrm}.EntityReference<{string.Join(" | ", lookups.Select(v => $@"""{v}"""))}>";
-                form.AttributesByTypeName.AddOrAppend(type.Capitalize() + "LookupAttributeNames", new AttributeInfo(name, attributeType, returnType));
-            }
-            else if (type.StartsWith(xrm + ".NumberAttribute"))
-            {
-                form.AttributesByTypeName.AddOrAppend("NumberAttributeNames", new AttributeInfo(name, attributeType, "number"));
-            }
-            else if (type.StartsWith(xrm + ".DateAttribute"))
-            {
-                form.AttributesByTypeName.AddOrAppend("DateAttributeNames", new AttributeInfo(name, attributeType, "date"));
+                case "Attribute":
+                case "OptionSetAttribute":
+                case "MultiSelectOptionSetAttribute":
+                    type = type.SubstringByString("<", ">");
+                    var att = new AttributeInfo(name, attributeType, type);
+                    form.AttributesByTypeName.AddOrAppend(type.Capitalize() + "AttributeNames", att);
+                    if (form.AttributesByXdtType.TryGetValue(type, out var list) || form.AttributesByXdtType.TryGetValue(baseType, out list))
+                    {
+                        list.Add(att);
+                    }
+                    else
+                    {
+                        throw new Exception("Unrecognized Attribute Type: " + line);
+                    }
+                    break;
+                case "DateAttribute":
+                    att = new AttributeInfo(name, attributeType, "date");
+                    form.AttributesByTypeName.AddOrAppend("DateAttributeNames", att);
+                    form.DateAttributes.Add(att);
+                    break;
+
+                case "LookupAttribute":
+                    var lookupName = type.SubstringByString("<", ">");
+                    var lookups = lookupName.Replace("\"", "").Split(new[] { '|', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                    type = string.Join("_", lookups.Select(v => v.Capitalize()));
+                    var returnType = $"{xrm}.EntityReference<{string.Join(" | ", lookups.Select(v => $@"""{v}"""))}>";
+                    att = new AttributeInfo(name, attributeType, returnType);
+                    form.AttributesByTypeName.AddOrAppend(type.Capitalize() + "LookupAttributeNames", att);
+                    form.LookupAttributes.Add(att);
+                    break;
+
+                case "NumberAttribute":
+                    att = new AttributeInfo(name, attributeType, "number");
+                    form.AttributesByTypeName.AddOrAppend("NumberAttributeNames", att);
+                    form.NumberAttributes.Add(att);
+                    break;
+
             }
         }
         public void ParseGetControlLine(ParsedXdtForm form, string line)

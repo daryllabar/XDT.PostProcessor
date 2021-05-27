@@ -262,11 +262,11 @@ declare namespace Form.account.InteractionCentricDashboard {
         {
             var input = (string[])file.Contents.Clone();
             Sut.UpdateDtFile(input); 
-            var parser = new XdtFormParser().Parse(input, Sut.Settings.XrmNamespacePrefix);
+            var parser = new XdtFormParser().Parse(input);
             action(file, parser, Sut.Settings.XrmNamespacePrefix);
 
             Sut.Settings.XrmNamespaceOverride = null;
-            parser = new XdtFormParser().Parse(file.Contents, Sut.Settings.XrmNamespacePrefix);
+            parser = new XdtFormParser().Parse(file.Contents);
             action(file, parser, Sut.Settings.XrmNamespacePrefix);
         }
     }
