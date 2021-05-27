@@ -231,19 +231,20 @@ declare namespace Form.account.InteractionCentricDashboard {
         [TestMethod]
         public void SingleLineFunctions_Account_Should_GenerateTypings()
         {
-            ExecuteForAllOptions(MainAccountForm, (file, parser, xrm) => {
+            ExecuteForAllOptions(MainAccountForm, (file, form, xrm) => {
                 var output = new List<string>();
-                Sut.WriteGetVisible(output, file.FormName, parser);
-                output.ShouldEqualWithDiff($"    getVisible(name: {parser.GetAllAttributeAndControlNamesTypeUnion(file.FormName)}): boolean;");
+                var allTypeUnion = TypingsExtensionLogic.GetAllAttributeAndControlNamesTypeUnion(form, file.FormName);
+                Sut.WriteGetVisible(output, file.FormName, form);
+                output.ShouldEqualWithDiff($"    getVisible(name: {allTypeUnion}): boolean;");
                 output = new List<string>();                
-                Sut.WriteFireOnChange(output, file.FormName, parser);
+                Sut.WriteFireOnChange(output, file.FormName, form);
                 output.ShouldEqualWithDiff($"    fireOnChange(attributeName: {file.FormName}.AttributeNames): void;");
                 output = new List<string>();
-                Sut.WriteRemoveOnChange(output, file.FormName, parser);
+                Sut.WriteRemoveOnChange(output, file.FormName, form);
                 output.ShouldEqualWithDiff($"    removeOnChange(attributeName: {file.FormName}.AttributeNames | {file.FormName}.AttributeNames[], handler: (context?: {xrm}.ExecutionContext<{xrm}.Attribute<any>, undefined>) => any): void;");
                 output = new List<string>();
-                Sut.WriteSetVisible(output, file.FormName, parser);
-                output.ShouldEqualWithDiff($"    setVisible(name: {parser.GetAllAttributeAndControlNamesTypeUnion(file.FormName)}, visible = true): void;");
+                Sut.WriteSetVisible(output, file.FormName, form);
+                output.ShouldEqualWithDiff($"    setVisible(name: {allTypeUnion}, visible = true): void;");
             });
         }
 
@@ -257,15 +258,15 @@ declare namespace Form.account.InteractionCentricDashboard {
             file[0].ShouldEqualWithDiff($"<start> {xrm} xrmXrm XrmQuery <{xrm}> ,{xrm} <end>");
         }
 
-        private void ExecuteForAllOptions(FileHelper file, Action<FileHelper, XdtFormParser, string> action)
+        private void ExecuteForAllOptions(FileHelper file, Action<FileHelper, ParsedXdtForm, string> action)
         {
             var input = (string[])file.Contents.Clone();
-            Sut.UpdateDtFile(input);
-            var parser = new XdtFormParser(input, Sut.Settings);
+            Sut.UpdateDtFile(input); 
+            var parser = new XdtFormParser().Parse(input, Sut.Settings.XrmNamespacePrefix);
             action(file, parser, Sut.Settings.XrmNamespacePrefix);
 
             Sut.Settings.XrmNamespaceOverride = null;
-            parser = new XdtFormParser(file.Contents, Sut.Settings);
+            parser = new XdtFormParser().Parse(file.Contents, Sut.Settings.XrmNamespacePrefix);
             action(file, parser, Sut.Settings.XrmNamespacePrefix);
         }
     }

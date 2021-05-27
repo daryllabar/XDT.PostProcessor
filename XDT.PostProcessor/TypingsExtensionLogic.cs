@@ -96,25 +96,25 @@ namespace XDT.PostProcessor
 
         public string CreateFormExtContents(string table, string formType, string formName, string[] source)
         {
-            var parser = new XdtFormParser(source, Settings);
+            var form = new XdtFormParser().Parse(source, Settings.XrmNamespacePrefix);
             var contents = new List<string>();
-            WriteNamespace(contents, table, formType, formName, parser);
+            WriteNamespace(contents, table, formType, formName, form);
             return string.Join(Environment.NewLine, contents);
         }
 
-        private void WriteNamespace(List<string> contents, string table, string formType, string formName, XdtFormParser parser) {
+        private void WriteNamespace(List<string> contents, string table, string formType, string formName, ParsedXdtForm form) {
             contents.Add($"declare namespace Form{Settings.FormNamespacePostfix}.{table}.{formType} " + "{");
-            WriteFormNamespace(contents, formName, parser);
-            WriteFormInterface(contents, table, formType, formName, parser);
+            WriteFormNamespace(contents, formName, form);
+            WriteFormInterface(contents, table, formType, formName, form);
             contents.Add("}");
         }
 
-        public void WriteFormNamespace(List<string> contents, string formName, XdtFormParser parser)
+        public void WriteFormNamespace(List<string> contents, string formName, ParsedXdtForm form)
         {
             contents.Add($"  namespace {formName} {{");
             var lines = new List<string>();
             var types = new List<string>();
-            foreach (var namesForType in parser.AttributesByTypeName)
+            foreach (var namesForType in form.AttributesByTypeName)
             {
                 types.Add(namesForType.Key);
                 lines.Add($@"    type {namesForType.Key} = {ToPipeStringDelimited(namesForType.Value.Select(v => v.Name), true)};");
@@ -126,7 +126,7 @@ namespace XDT.PostProcessor
             }
 
             types = new List<string>();
-            foreach (var namesForType in parser.ControlsByTypeName)
+            foreach (var namesForType in form.ControlsByTypeName)
             {
                 types.Add(namesForType.Key);
                 lines.Add($@"    type {namesForType.Key} = {ToPipeStringDelimited(namesForType.Value.Select(v => v.Name), true)};");
@@ -141,36 +141,36 @@ namespace XDT.PostProcessor
             contents.Add("  }");
         }
 
-        private void WriteFormInterface(List<string> contents, string table, string formType, string formName, XdtFormParser parser)
+        private void WriteFormInterface(List<string> contents, string table, string formType, string formName, ParsedXdtForm form)
         {
             contents.Add($"  interface {formName} extends Form.{table}.{formType}.{formName} {{");
-            WriteAddOnChangeValues(contents, formName, parser);
-            WriteFireOnChange(contents, formName, parser);
-            WriteGetValues(contents, formName, parser);
-            WriteGetVisible(contents, formName, parser);
-            WriteRemoveOnChange(contents, formName, parser);
-            WriteSetValues(contents, formName, parser);
-            WriteSetVisible(contents, formName, parser);
+            WriteAddOnChangeValues(contents, formName, form);
+            WriteFireOnChange(contents, formName, form);
+            WriteGetValues(contents, formName, form);
+            WriteGetVisible(contents, formName, form);
+            WriteRemoveOnChange(contents, formName, form);
+            WriteSetValues(contents, formName, form);
+            WriteSetVisible(contents, formName, form);
             contents.Add("  }"); 
         }
 
-        public void WriteAddOnChangeValues(List<string> contents, string formName, XdtFormParser parser)
+        public void WriteAddOnChangeValues(List<string> contents, string formName, ParsedXdtForm form)
         {
-            contents.AddRange(from namesForType in parser.AttributesByTypeName.OrderBy(k => k.Key)
+            contents.AddRange(from namesForType in form.AttributesByTypeName.OrderBy(k => k.Key)
                 let first = namesForType.Value.First()
                 let nullable = NonNullableValueTypes.Contains(namesForType.Key)
                     ? string.Empty
                     : " | null"
                 select $@"    addOnChange(attributeName: {formName}.{namesForType.Key}, handler: (context?: {Settings.XrmNamespacePrefix}.ExecutionContext<{first.AttributeType}, undefined>) => any): void;");
-            if (parser.AttributesByTypeName.Count > 0)
+            if (form.AttributesByTypeName.Count > 0)
             {
                 contents.Add($@"    addOnChange(attributeNames: {formName}.AttributeNames[], handler: (context?: {Settings.XrmNamespacePrefix}.ExecutionContext<{Settings.XrmNamespacePrefix}.Attribute<any>, undefined>) => any): void;");
             }
         }
 
-        public void WriteFireOnChange(List<string> contents, string formName, XdtFormParser parser)
+        public void WriteFireOnChange(List<string> contents, string formName, ParsedXdtForm form)
         {
-            if (parser.AttributesByTypeName.Count == 0)
+            if (form.AttributesByTypeName.Count == 0)
             {
                 return;
             }
@@ -178,9 +178,9 @@ namespace XDT.PostProcessor
             contents.Add($@"    fireOnChange(attributeName: {formName}.AttributeNames): void;");
         }
 
-        public void WriteGetValues(List<string> contents, string formName, XdtFormParser parser)
+        public void WriteGetValues(List<string> contents, string formName, ParsedXdtForm form)
         {
-            contents.AddRange(from namesForType in parser.AttributesByTypeName.OrderBy(k => k.Key)
+            contents.AddRange(from namesForType in form.AttributesByTypeName.OrderBy(k => k.Key)
                 let first = namesForType.Value.First()
                 let nullable = NonNullableValueTypes.Contains(namesForType.Key)
                     ? string.Empty
@@ -188,9 +188,9 @@ namespace XDT.PostProcessor
                 select $@"    getValue(attributeName: {formName}.{namesForType.Key}): {first.ValueType}{nullable};");
         }
 
-        public void WriteGetVisible(List<string> contents, string formName, XdtFormParser parser)
+        public void WriteGetVisible(List<string> contents, string formName, ParsedXdtForm form)
         {
-            var type = parser.GetAllAttributeAndControlNamesTypeUnion(formName);
+            var type = GetAllAttributeAndControlNamesTypeUnion(form, formName);
             if (string.IsNullOrWhiteSpace(type))
             {
                 return;
@@ -199,9 +199,9 @@ namespace XDT.PostProcessor
             contents.Add($@"    getVisible(name: {type}): boolean;");
         }
 
-        public void WriteRemoveOnChange(List<string> contents, string formName, XdtFormParser parser)
+        public void WriteRemoveOnChange(List<string> contents, string formName, ParsedXdtForm form)
         {
-            if (parser.AttributesByTypeName.Count == 0)
+            if (form.AttributesByTypeName.Count == 0)
             {
                 return;
             }
@@ -209,9 +209,9 @@ namespace XDT.PostProcessor
             contents.Add($@"    removeOnChange(attributeName: {formName}.AttributeNames | {formName}.AttributeNames[], handler: (context?: {Settings.XrmNamespacePrefix}.ExecutionContext<{Settings.XrmNamespacePrefix}.Attribute<any>, undefined>) => any): void;");
         }
 
-        public void WriteSetValues(List<string> contents, string formName, XdtFormParser parser)
+        public void WriteSetValues(List<string> contents, string formName, ParsedXdtForm form)
         {
-            contents.AddRange(from namesForType in parser.AttributesByTypeName.OrderBy(k => k.Key)
+            contents.AddRange(from namesForType in form.AttributesByTypeName.OrderBy(k => k.Key)
                 let first = namesForType.Value.First()
                 let nullable = NonNullableValueTypes.Contains(namesForType.Key)
                     ? string.Empty
@@ -219,9 +219,9 @@ namespace XDT.PostProcessor
                 select $@"    setValue(attributeName: {formName}.{namesForType.Key}, value: {first.ValueType}{nullable}, fireOnChange = true);");
         }
 
-        public void WriteSetVisible(List<string> contents, string formName, XdtFormParser parser)
+        public void WriteSetVisible(List<string> contents, string formName, ParsedXdtForm form)
         {
-            var type = parser.GetAllAttributeAndControlNamesTypeUnion(formName);
+            var type = GetAllAttributeAndControlNamesTypeUnion(form, formName);
             if (string.IsNullOrWhiteSpace(type))
             {
                 return;
@@ -237,5 +237,23 @@ namespace XDT.PostProcessor
                 : string.Join(" | ", values);
         }
 
+        public static string GetAllAttributeAndControlNamesTypeUnion(ParsedXdtForm form, string formName)
+        {
+            var name = $"{formName}.AttributeNames | {formName}.ControlNames";
+            if (form.AttributesByTypeName.Count == 0 && form.ControlsByTypeName.Count == 0)
+            {
+                name = string.Empty;
+            }
+            else if (form.AttributesByTypeName.Count == 0)
+            {
+                name = formName + ".ControlNames";
+            }
+            else if (form.ControlsByTypeName.Count == 0)
+            {
+                name = formName + ".AttributeNames";
+            }
+
+            return name;
+        }
     }
 }

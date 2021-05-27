@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using Source.DLaB.Common;
 
@@ -9,27 +8,6 @@ namespace XDT.PostProcessor
     {
         private const string InterfaceGetAttributePrefix = "    getAttribute(attributeName: \"";
         private const string InterfaceGetControlPrefix = "    getControl(controlName: \"";
-        public Dictionary<string, List<AttributeInfo>> AttributesByTypeName { get; }
-        public Dictionary<string, List<ControlInfo>> ControlsByTypeName { get; }
-        public List<AttributeInfo> BooleanAttributes { get; set; }
-        public List<AttributeInfo> DateAttributes { get; set; }
-        public List<AttributeInfo> NumberAttributes { get; set; }
-        public List<AttributeInfo> LookupAttributes { get; set; }
-        public List<AttributeInfo> OptionSetAttributes { get; set; }
-        public List<AttributeInfo> MultiSelectAttributes { get; set; }
-        public List<ControlInfo> AttributeControls { get; set; }
-        public List<ControlInfo> BaseControls { get; set; }
-        public List<ControlInfo> DateControls { get; set; }
-        public List<ControlInfo> IFrameControls { get; set; }
-        public List<ControlInfo> KbSearchControls { get; set; }
-        public List<ControlInfo> LookupControls { get; set; }
-        public List<ControlInfo> NoteControls { get; set; }
-        public List<ControlInfo> MultiSelectControls { get; set; }
-        public List<ControlInfo> NumberControls { get; set; }
-        public List<ControlInfo> StringControls { get; set; }
-        public List<ControlInfo> SubgridControls { get; set; }
-        public List<ControlInfo> TimerControls { get; set; }
-        public List<ControlInfo> WebResourceControls { get; set; }
 
         private enum ParserState
         {
@@ -38,37 +16,15 @@ namespace XDT.PostProcessor
             PostInterface
         }
 
-        public XdtFormParser(string[] contents, Settings settings)
-        {
-            AttributesByTypeName = new Dictionary<string, List<AttributeInfo>>();
-            ControlsByTypeName = new Dictionary<string, List<ControlInfo>>();
-            BooleanAttributes = new List<AttributeInfo>();
-            DateAttributes = new List<AttributeInfo>();
-            NumberAttributes = new List<AttributeInfo>();
-            LookupAttributes = new List<AttributeInfo>();
-            OptionSetAttributes = new List<AttributeInfo>();
-            MultiSelectAttributes = new List<AttributeInfo>();
-            AttributeControls = new List<ControlInfo>();
-            BaseControls = new List<ControlInfo>();
-            DateControls = new List<ControlInfo>();
-            IFrameControls = new List<ControlInfo>();
-            KbSearchControls = new List<ControlInfo>();
-            LookupControls = new List<ControlInfo>();
-            NoteControls = new List<ControlInfo>();
-            MultiSelectControls = new List<ControlInfo>();
-            NumberControls = new List<ControlInfo>();
-            StringControls = new List<ControlInfo>();
-            SubgridControls = new List<ControlInfo>();
-            TimerControls = new List<ControlInfo>();
-            WebResourceControls = new List<ControlInfo>();
+        public ParsedXdtForm Parse(string[] contents, string xrmPrefix) { 
+            var form = new ParsedXdtForm();
             if (contents.Length == 0)
             {
-                return;
+                return form;
             }
 
             var state = ParserState.PreInterface;
-            var xrm = settings.XrmNamespacePrefix;
-            foreach(var line in contents)
+            foreach (var line in contents)
             {
                 switch (state)
                 {
@@ -84,8 +40,8 @@ namespace XDT.PostProcessor
                             state = ParserState.PostInterface;
                         }
 
-                        ParseGetAttributeLine(line, xrm);
-                        ParseGetControlLine(line, xrm);
+                        ParseGetAttributeLine(form, line, xrmPrefix);
+                        ParseGetControlLine(form, line);
 
                         break;
                     case ParserState.PostInterface:
@@ -94,28 +50,11 @@ namespace XDT.PostProcessor
                         throw new ArgumentOutOfRangeException();
                 }
             }
+
+            return form;
         }
 
-        public string GetAllAttributeAndControlNamesTypeUnion(string formName)
-        {
-            var name = $"{formName}.AttributeNames | {formName}.ControlNames";
-            if (AttributesByTypeName.Count == 0 && ControlsByTypeName.Count == 0)
-            {
-                name = string.Empty;
-            }
-            else if (AttributesByTypeName.Count == 0)
-            {
-                name = formName + ".ControlNames";
-            }
-            else if (ControlsByTypeName.Count == 0)
-            {
-                name = formName + ".AttributeNames";
-            }
-
-            return name;
-        }
-
-        private void ParseGetAttributeLine(string line, string xrm)
+        public void ParseGetAttributeLine(ParsedXdtForm form, string line, string xrm)
         {
             if (!line.StartsWith(InterfaceGetAttributePrefix))
             {
@@ -134,7 +73,7 @@ namespace XDT.PostProcessor
                 || type.StartsWith(xrm + ".OptionSetAttribute<"))
             {
                 type = type.SubstringByString("<", ">");
-                AttributesByTypeName.AddOrAppend(type.Capitalize() + "AttributeNames", new AttributeInfo(name, attributeType, type));
+                form.AttributesByTypeName.AddOrAppend(type.Capitalize() + "AttributeNames", new AttributeInfo(name, attributeType, type));
             }
             else if (type.StartsWith(xrm + ".LookupAttribute<"))
             {
@@ -142,18 +81,18 @@ namespace XDT.PostProcessor
                 var lookups = lookupName.Replace("\"", "").Split(new[] {'|', ' '}, StringSplitOptions.RemoveEmptyEntries);
                 type = string.Join("_", lookups.Select(v => v.Capitalize()));
                 var returnType = $"{xrm}.EntityReference<{string.Join(" | ", lookups.Select(v => $@"""{v}"""))}>";
-                AttributesByTypeName.AddOrAppend(type.Capitalize() + "LookupAttributeNames", new AttributeInfo(name, attributeType, returnType));
+                form.AttributesByTypeName.AddOrAppend(type.Capitalize() + "LookupAttributeNames", new AttributeInfo(name, attributeType, returnType));
             }
             else if (type.StartsWith(xrm + ".NumberAttribute"))
             {
-                AttributesByTypeName.AddOrAppend("NumberAttributeNames", new AttributeInfo(name, attributeType, "number"));
+                form.AttributesByTypeName.AddOrAppend("NumberAttributeNames", new AttributeInfo(name, attributeType, "number"));
             }
             else if (type.StartsWith(xrm + ".DateAttribute"))
             {
-                AttributesByTypeName.AddOrAppend("DateAttributeNames", new AttributeInfo(name, attributeType, "date"));
+                form.AttributesByTypeName.AddOrAppend("DateAttributeNames", new AttributeInfo(name, attributeType, "date"));
             }
         }
-        private void ParseGetControlLine(string line, string xrm)
+        public void ParseGetControlLine(ParsedXdtForm form, string line)
         {
             if (!line.StartsWith(InterfaceGetControlPrefix))
             {
@@ -177,19 +116,19 @@ namespace XDT.PostProcessor
                 case "Number":
                 case "Date":
                 case "KBSearchControl":
-                    ControlsByTypeName.AddOrAppend(baseType + "ControlNames", new ControlInfo(name, controlType));
+                    form.ControlsByTypeName.AddOrAppend(baseType + "ControlNames", new ControlInfo(name, controlType));
                     break;
                 case "OptionSet":
                 case "MultiSelectOptionSet":
                     type = type.SubstringByString("<", ">");
-                    ControlsByTypeName.AddOrAppend(type.Capitalize() + "ControlNames", new ControlInfo(name, controlType));
+                    form.ControlsByTypeName.AddOrAppend(type.Capitalize() + "ControlNames", new ControlInfo(name, controlType));
                     break;
                 case "Lookup":
                 case "SubGrid":
                     var lookupName = type.SubstringByString("<", ">");
                     var lookups = lookupName.Replace("\"", "").Split(new[] { '|', ' ' }, StringSplitOptions.RemoveEmptyEntries);
                     type = string.Join("_", lookups.Select(v => v.Capitalize())); 
-                    ControlsByTypeName.AddOrAppend(type.Capitalize() + baseType + "ControlNames", new ControlInfo(name, controlType));
+                    form.ControlsByTypeName.AddOrAppend(type.Capitalize() + baseType + "ControlNames", new ControlInfo(name, controlType));
                     break;
             }
         }
