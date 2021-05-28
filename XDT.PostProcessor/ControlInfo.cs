@@ -1,14 +1,19 @@
 ﻿namespace XDT.PostProcessor
 {
-    public struct ControlInfo
+    public readonly struct ControlInfo
     {
-        public string ControlType { get; set; }
+        public string ControlType { get; }
         public string Name { get; }
 
         public ControlInfo(string name, string controlType)
         {
             Name = name;
             ControlType = controlType;
+        }
+
+        public override string ToString()
+        {
+            return $"{{ ControlType: {ControlType}, Name: {Name} }}";
         }
     }
 }

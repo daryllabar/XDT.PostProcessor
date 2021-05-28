@@ -113,6 +113,10 @@ namespace XDT.PostProcessor
                     form.NumberAttributes.Add(att);
                     break;
 
+                case "undefined":
+                    // Do Nothing for the generic case
+                    break;
+
             }
         }
         public void ParseGetControlLine(ParsedXdtForm form, string line)
@@ -123,36 +127,52 @@ namespace XDT.PostProcessor
             }
 
             var name = line.SubstringByString(InterfaceGetControlPrefix, "\"");
-            var controlType = line.SubstringByString(":").SubstringByString(":").Trim().Split(';')[0]; // XdtXrm.OptionSetControl<contact_familystatuscode>
+            var controlType = line.SubstringByString(":").SubstringByString(":").Trim().Split(';')[0];
             if (controlType.EndsWith(" | null"))
             {
                 controlType = controlType.SubstringByString(0, " | null");
             }
 
-            var type = controlType.Split('.')[1]; // OptionSetControl<contact_familystatuscode>
-            var baseType = type.SubstringByString(0, "Control"); // OptionSet
-
+            var type = controlType.Split('.')[1]; //Control<XdtXrm
+            var baseType = type.SubstringByString(0, "Control");
+            baseType = string.IsNullOrWhiteSpace(baseType)
+                       && type.SubstringByString(0,"<") == "Control"
+                ? "Base"
+                : baseType;
+            var control = new ControlInfo(name, controlType);
             switch (baseType)
             {
                 case "Base":
+                case "Date":
+                case "IFrame":
+                case "KBSearch":
                 case "String":
                 case "Number":
-                case "Date":
-                case "KBSearchControl":
-                    form.ControlsByTypeName.AddOrAppend(baseType + "ControlNames", new ControlInfo(name, controlType));
+                case "WebResource":
+                    control = new ControlInfo(name, controlType);
+                    form.ControlsByTypeName.AddOrAppend(baseType + "ControlNames", control);
                     break;
                 case "OptionSet":
                 case "MultiSelectOptionSet":
                     type = type.SubstringByString("<", ">");
-                    form.ControlsByTypeName.AddOrAppend(type.Capitalize() + "ControlNames", new ControlInfo(name, controlType));
+                    form.ControlsByTypeName.AddOrAppend(type.Capitalize() + "ControlNames", control);
                     break;
                 case "Lookup":
                 case "SubGrid":
                     var lookupName = type.SubstringByString("<", ">");
                     var lookups = lookupName.Replace("\"", "").Split(new[] { '|', ' ' }, StringSplitOptions.RemoveEmptyEntries);
                     type = string.Join("_", lookups.Select(v => v.Capitalize())); 
-                    form.ControlsByTypeName.AddOrAppend(type.Capitalize() + baseType + "ControlNames", new ControlInfo(name, controlType));
+                    form.ControlsByTypeName.AddOrAppend(type.Capitalize() + baseType + "ControlNames", control);
                     break;
+            }
+
+            if (form.ControlsByXdtType.TryGetValue(baseType, out var list))
+            {
+                list.Add(control);
+            }
+            else
+            {
+                throw new Exception($"Unrecognized BaseType: {baseType} from line: {line}");
             }
         }
     }

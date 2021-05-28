@@ -95,7 +95,7 @@ declare namespace Form.account.InteractionCentricDashboard {
     type AccountLookupControlNames = ""msdyn_billingaccount"" | ""parentaccountid"";
     type AnyAttributeNames = ""tickersymbol"";
     type AttributeNames = Account_Address1_FreighttermscodeAttributeNames | Account_Address1_ShippingmethodcodeAttributeNames | Account_CustomertypecodeAttributeNames | Account_IndustrycodeAttributeNames | Account_OwnershipcodeAttributeNames | Account_PaymenttermscodeAttributeNames | Account_PreferredcontactmethodcodeAttributeNames | AccountLookupAttributeNames | AnyAttributeNames | BooleanAttributeNames | ContactLookupAttributeNames | Msdyn_TaxcodeLookupAttributeNames | Msdyn_TravelchargetypeAttributeNames | Msdyn_WorkhourtemplateLookupAttributeNames | NumberAttributeNames | PricelevelLookupAttributeNames | StringAttributeNames | Systemuser_TeamLookupAttributeNames | TerritoryLookupAttributeNames | TransactioncurrencyLookupAttributeNames;
-    type BaseControlNames = ""ActionCards"" | ""mapcontrol"" | ""notescontrol"";
+    type BaseControlNames = ""ActionCards"" | ""mapcontrol"" | ""name1"" | ""notescontrol"" | ""tickersymbol"";
     type BooleanAttributeNames = ""creditonhold"" | ""donotbulkemail"" | ""donotemail"" | ""donotfax"" | ""donotphone"" | ""donotpostalmail"" | ""msdyn_taxexempt"";
     type BooleanControlNames = ""creditonhold"" | ""donotbulkemail"" | ""donotemail"" | ""donotfax"" | ""donotphone"" | ""donotpostalmail"" | ""msdyn_taxexempt"";
     type ContactLookupAttributeNames = ""primarycontactid"";
