@@ -52,8 +52,9 @@ namespace XDT.PostProcessor.Test
         [DataRow("XdtXrm")]
         public void ShouldParseControls(string xrm)
         {
-            TestControl($"{xrm}.Control<{xrm}.Attribute<any>>", Form.BaseControls);
+            TestControl($"{xrm}.Control<{xrm}.Attribute<any>>", Form.AttributeControls);
             TestControl(xrm + ".BaseControl", Form.BaseControls);
+            TestControl(xrm + ".BooleanControl", Form.BooleanControls);
             TestControl(xrm + ".DateControl", Form.DateControls);
             TestControl(xrm + ".IFrameControl", Form.IFrameControls);
             TestControl(xrm + ".KBSearchControl", Form.KbSearchControls);

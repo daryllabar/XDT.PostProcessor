@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Source.DLaB.Common;
 
 namespace XDT.PostProcessor
 {
@@ -12,6 +13,62 @@ namespace XDT.PostProcessor
             "StringAttributeNames",
             "BooleanAttributeNames"
         };
+
+        public struct DefinedTypes
+        {
+            // Attributes
+            public const string AllAttributes = "AttributeNames";
+            public const string AnyAttributes = "AnyAttributeNames";
+            public const string BooleanAttributes = "BooleanAttributeNames";
+            public const string DateAttributes = "DateAttributeNames";
+            public const string LookupAttributes = "LookupAttributeNames";
+            public const string MultiSelectAttributes = "MultiSelectAttributeNames";
+            public const string NumberAttributes = "NumberAttributeNames";
+            public const string OptionSetAttributes = "OptionSetAttributeNames";
+            public const string StringAttributes = "StringAttributeNames";
+            public static readonly List<string> Attributes = new []
+            {
+                AnyAttributes,
+                BooleanAttributes,
+                DateAttributes,
+                LookupAttributes,
+                MultiSelectAttributes,
+                NumberAttributes,
+                OptionSetAttributes,
+                StringAttributes,
+            }.OrderBy(n=>n).ToList();
+            // Controls
+            public const string AllControls = "ControlNames";
+            public const string AttributeControls = "AttributeControlNames";
+            public const string BaseControls = "BaseControlNames";
+            public const string BooleanControls = "BooleanControlNames";
+            public const string DateControls = "DateControlNames";
+            // ReSharper disable once InconsistentNaming
+            public const string IFrameControls = "IFrameControlNames";
+            public const string KbSearchControls = "KbSearchControlNames";
+            public const string LookupControls = "LookupControlNames";
+            public const string MultiSelectControls = "MultiSelectControlNames";
+            public const string NumberControls = "NumberControlNames";
+            public const string StringControls = "StringControlNames";
+            public const string SubGridControls = "SubGridControlNames";
+            public const string WebResourceControls = "WebResourceControlNames";
+            public static readonly List<string> Controls = new[]
+            {
+                AttributeControls,
+                BaseControls,
+                BooleanControls,
+                DateControls,
+                IFrameControls,
+                KbSearchControls,
+                LookupControls,
+                MultiSelectControls,
+                NumberControls,
+                StringControls,
+                SubGridControls,
+                WebResourceControls,
+            }.OrderBy(n => n).ToList();
+        }
+
         public Settings Settings { get; }
         public TypingsExtensionLogic(Settings settings)
         {
@@ -112,33 +169,141 @@ namespace XDT.PostProcessor
         public void WriteFormNamespace(List<string> contents, string formName, ParsedXdtForm form)
         {
             contents.Add($"  namespace {formName} {{");
-            var lines = new List<string>();
-            var types = new List<string>();
-            foreach (var namesForType in form.AttributesByTypeName)
-            {
-                types.Add(namesForType.Key);
-                lines.Add($@"    type {namesForType.Key} = {ToPipeStringDelimited(namesForType.Value.Select(v => v.Name), true)};");
-            }
-
-            if (types.Any())
-            {
-                lines.Add($@"    type AttributeNames = {ToPipeStringDelimited(types.OrderBy(n => n))};");
-            }
-
-            types = new List<string>();
-            foreach (var namesForType in form.ControlsByTypeName)
-            {
-                types.Add(namesForType.Key);
-                lines.Add($@"    type {namesForType.Key} = {ToPipeStringDelimited(namesForType.Value.Select(v => v.Name), true)};");
-            }
-
-            if (types.Any())
-            {
-                lines.Add($@"    type ControlNames = {ToPipeStringDelimited(types.OrderBy(n => n))};");
-            }
-
-            contents.AddRange(lines.OrderBy(l => l));
+            WriteBaseTypes(contents, form);
+            WriteAttributeTypes(contents, form);
+            WriteControlTypes(contents, form);
             contents.Add("  }");
+        }
+
+        public void WriteAttributeTypes(List<string> contents, ParsedXdtForm form)
+        {
+            string GenerateStandardDefinition(string name, List<AttributeInfo> attributes)
+            {
+                return attributes.Count == 0
+                    ? string.Empty
+                    : $"    type {name} = {attributes.Select(v => v.Name).ToSortedPipeStringDelimited(true, "string")};";
+            }
+
+            string GenerateLookupDefinition()
+            {
+                var attributes = form.AttributesByTypeName.Where(k => k.Key.EndsWith(DefinedTypes.LookupAttributes)).ToArray();
+                return attributes.Length == 0
+                    ? string.Empty
+                    : $"    type {DefinedTypes.LookupAttributes} = {attributes.Select(v => v.Key).ToSortedPipeStringDelimited(false, "string")};";
+            }
+
+            string GenerateOptionSetDefinition(string name, string attributeName)
+            {
+                var types = form.AttributesByTypeName.SelectMany(t => t.Value)
+                                .Where(v => v.AttributeType.SubstringByString(".", "<") == attributeName && v.ValueType != "boolean")
+                                .Select(v => v.ValueType.Capitalize())
+                                .ToArray();
+                return types.Length == 0
+                    ? string.Empty
+                    : $"    type {name} = {types.ToSortedPipeStringDelimited(false, "string")};";
+            }
+            
+            contents.AddSortedSection(new[]
+            {
+                form.AttributesByTypeName.Count == 0 ? string.Empty : $"    type {DefinedTypes.AllAttributes} = {DefinedTypes.Attributes.ToSortedPipeStringDelimited()};",
+                GenerateStandardDefinition(DefinedTypes.AnyAttributes, form.AnyAttributes),
+                GenerateStandardDefinition(DefinedTypes.BooleanAttributes, form.BooleanAttributes),
+                GenerateStandardDefinition(DefinedTypes.DateAttributes, form.DateAttributes),
+                GenerateStandardDefinition(DefinedTypes.NumberAttributes, form.NumberAttributes),
+                GenerateStandardDefinition(DefinedTypes.StringAttributes, form.StringAttributes),
+                GenerateLookupDefinition(),
+                GenerateOptionSetDefinition(DefinedTypes.MultiSelectAttributes, "MultiSelectOptionSetAttribute"),
+                GenerateOptionSetDefinition(DefinedTypes.OptionSetAttributes, "OptionSetAttribute"),
+            }.Where(l => !string.IsNullOrWhiteSpace(l)), "    // Base Attributes");
+            contents.AddSortedSection(form.AttributesByTypeName
+                                          .Where(kvp => !DefinedTypes.Attributes.Contains(kvp.Key))
+                                          .Select(namesForType => $@"    type {namesForType.Key} = {namesForType.Value.Select(v => v.Name).ToSortedPipeStringDelimited(true)};"), "    // Type Specific Attributes");
+        }
+
+        public void WriteControlTypes(List<string> contents, ParsedXdtForm form)
+        {
+            string GenerateStandardDefinition(string name, List<ControlInfo> controls)
+            {
+                return controls.Count == 0
+                    ? string.Empty
+                    : $"    type {name} = {controls.Select(v => v.Name).ToSortedPipeStringDelimited(true, "string")};";
+            }
+
+            string GenerateLookupDefinition()
+            {
+                var controls = form.ControlsByTypeName.Where(k => k.Key.EndsWith(DefinedTypes.LookupControls)).ToArray();
+                return controls.Length == 0
+                    ? string.Empty
+                    : $"    type {DefinedTypes.LookupControls} = {controls.Select(v => v.Key).ToSortedPipeStringDelimited(false, "string")};";
+            }
+
+            string GenerateOptionSetDefinition(string name, string attributeName)
+            {
+                var types = form.ControlsByTypeName
+                    .Where(kvp => !DefinedTypes.Controls.Contains(kvp.Key))
+                    .Select(kvp => new {kvp.Key, ValueType = kvp.Value.FirstOrDefault().ControlType?.SubstringByString(".", "<")})
+                    .Where(kvp => kvp.ValueType == attributeName)
+                    .Select(kvp => kvp.Key)
+                    .ToArray();
+
+                return types.Length == 0
+                    ? string.Empty
+                    : $"    type {name} = {types.ToSortedPipeStringDelimited(false, "string")};";
+            }
+
+            contents.AddSortedSection(new[]
+            {
+                form.ControlsByTypeName.Count == 0 ? string.Empty : $"    type {DefinedTypes.AllControls} = {DefinedTypes.Controls.ToSortedPipeStringDelimited()};",
+                GenerateStandardDefinition(DefinedTypes.AttributeControls, form.AttributeControls),
+                GenerateStandardDefinition(DefinedTypes.BaseControls, form.BaseControls),
+                GenerateStandardDefinition(DefinedTypes.BooleanControls, form.BooleanControls),
+                GenerateStandardDefinition(DefinedTypes.DateControls, form.DateControls),
+                GenerateStandardDefinition(DefinedTypes.IFrameControls, form.IFrameControls),
+                GenerateStandardDefinition(DefinedTypes.KbSearchControls, form.KbSearchControls),
+                GenerateStandardDefinition(DefinedTypes.NumberControls, form.NumberControls),
+                GenerateStandardDefinition(DefinedTypes.StringControls, form.StringControls),
+                GenerateStandardDefinition(DefinedTypes.WebResourceControls, form.WebResourceControls),
+                GenerateLookupDefinition(),
+                GenerateOptionSetDefinition(DefinedTypes.MultiSelectControls, "MultiSelectOptionSetControl"),
+                GenerateOptionSetDefinition(DefinedTypes.OptionSetAttributes, "OptionSetControl"),
+                GenerateOptionSetDefinition(DefinedTypes.SubGridControls, "SubGridControl"),
+            }.Where(l => !string.IsNullOrWhiteSpace(l)), "    // Base Controls");
+            contents.AddSortedSection(form.ControlsByTypeName
+                                          .Where(kvp => !DefinedTypes.Controls.Contains(kvp.Key))
+                                          .Select(namesForType => $@"    type {namesForType.Key} = {namesForType.Value.Select(v => v.Name).ToSortedPipeStringDelimited(true)};"), "    // Type Specific Controls");
+        }
+
+        public void WriteBaseTypes(List<string> contents, ParsedXdtForm form)
+        {
+            string DefaultToStringIfEmpty<T>(string name, List<T> attributes)
+            {
+                return attributes.Count == 0 ? "string" : name;
+            }
+            contents.Add($"    type FormAttributes = {Settings.XrmNamespacePrefix}.FormAttributesBase<");
+            contents.Add($"        {(form.AttributesByTypeName.Count == 0 ? "string" : DefinedTypes.AllAttributes)},");
+            contents.Add($"        {DefaultToStringIfEmpty(DefinedTypes.BooleanAttributes, form.BooleanAttributes)},");
+            contents.Add($"        {DefaultToStringIfEmpty(DefinedTypes.DateAttributes, form.DateAttributes)},");
+            contents.Add($"        {DefaultToStringIfEmpty(DefinedTypes.LookupAttributes, form.LookupAttributes)},");
+            contents.Add($"        {DefaultToStringIfEmpty(DefinedTypes.MultiSelectAttributes, form.MultiSelectAttributes)},");
+            contents.Add($"        {DefaultToStringIfEmpty(DefinedTypes.NumberAttributes, form.NumberAttributes)},");
+            contents.Add($"        {DefaultToStringIfEmpty(DefinedTypes.OptionSetAttributes, form.OptionSetAttributes)},");
+            contents.Add($"        {DefaultToStringIfEmpty(DefinedTypes.StringAttributes, form.StringAttributes)}");
+            contents.Add("    >;");
+            contents.Add($"    type FormControls = {Settings.XrmNamespacePrefix}.FormControlsBase<");
+            contents.Add($"        {(form.ControlsByTypeName.Count == 0 ? "string" : DefinedTypes.AllControls)},");
+            contents.Add($"        {DefaultToStringIfEmpty(DefinedTypes.AttributeControls, form.AttributeControls)},");
+            contents.Add($"        {DefaultToStringIfEmpty(DefinedTypes.BaseControls, form.BaseControls)},");
+            contents.Add($"        {DefaultToStringIfEmpty(DefinedTypes.BooleanControls, form.BooleanControls)},");
+            contents.Add($"        {DefaultToStringIfEmpty(DefinedTypes.DateControls, form.DateControls)},");
+            contents.Add($"        {DefaultToStringIfEmpty(DefinedTypes.IFrameControls, form.IFrameControls)},");
+            contents.Add($"        {DefaultToStringIfEmpty(DefinedTypes.KbSearchControls, form.KbSearchControls)},");
+            contents.Add($"        {DefaultToStringIfEmpty(DefinedTypes.LookupControls, form.LookupControls)},");
+            contents.Add($"        {DefaultToStringIfEmpty(DefinedTypes.MultiSelectControls, form.MultiSelectControls)},");
+            contents.Add($"        {DefaultToStringIfEmpty(DefinedTypes.NumberControls, form.NumberControls)},");
+            contents.Add($"        {DefaultToStringIfEmpty(DefinedTypes.StringControls, form.StringControls)},");
+            contents.Add($"        {DefaultToStringIfEmpty(DefinedTypes.SubGridControls, form.SubGridControls)},");
+            contents.Add($"        {DefaultToStringIfEmpty(DefinedTypes.WebResourceControls, form.WebResourceControls)}");
+            contents.Add("    >;");
         }
 
         private void WriteFormInterface(List<string> contents, string table, string formType, string formName, ParsedXdtForm form)
@@ -228,13 +393,6 @@ namespace XDT.PostProcessor
             }
 
             contents.Add($@"    setVisible(name: {type}, visible = true): void;");
-        }
-
-        private string ToPipeStringDelimited(IEnumerable<string> values, bool applyTextWrap = false)
-        {
-            return applyTextWrap
-                ? "\"" + string.Join("\" | \"", values) + "\""
-                : string.Join(" | ", values);
         }
 
         public static string GetAllAttributeAndControlNamesTypeUnion(ParsedXdtForm form, string formName)

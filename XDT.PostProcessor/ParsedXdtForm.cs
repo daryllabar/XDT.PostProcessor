@@ -18,6 +18,7 @@ namespace XDT.PostProcessor
         public List<AttributeInfo> StringAttributes { get; }
         public List<ControlInfo> AttributeControls { get; }
         public List<ControlInfo> BaseControls { get; }
+        public List<ControlInfo> BooleanControls { get; }
         public List<ControlInfo> DateControls { get; }
         // ReSharper disable once InconsistentNaming
         public List<ControlInfo> IFrameControls { get; }
@@ -46,6 +47,7 @@ namespace XDT.PostProcessor
             // Controls
             AttributeControls = new List<ControlInfo>();
             BaseControls = new List<ControlInfo>();
+            BooleanControls = new List<ControlInfo>();
             DateControls = new List<ControlInfo>();
             IFrameControls = new List<ControlInfo>();
             KbSearchControls = new List<ControlInfo>();
@@ -70,7 +72,9 @@ namespace XDT.PostProcessor
 
             ControlsByXdtType = new Dictionary<string, List<ControlInfo>>
             {
+                {"Attribute", AttributeControls},
                 {"Base", BaseControls},
+                {"Boolean", BooleanControls},
                 {"Date", DateControls},
                 {"IFrame", IFrameControls},
                 {"KBSearch", KbSearchControls},

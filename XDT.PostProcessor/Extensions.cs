@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace XDT.PostProcessor
@@ -28,5 +29,42 @@ namespace XDT.PostProcessor
 
             return value;
         }
-	}
+
+        public static void AddSortedSection(this List<string> list, IEnumerable<string> values, string header = null)
+        {
+            var sorted = values.OrderBy(v => v).ToList();
+            if (sorted.Count == 0)
+            {
+                return;
+            }
+            if (!string.IsNullOrWhiteSpace(header))
+            {
+                list.Add(header);
+            }
+            list.AddRange(sorted);
+        }
+
+        public static string ToSortedPipeStringDelimited(this IEnumerable<string> values, bool applyTextWrap = false, string emptyValue = null)
+        {
+            return values.OrderBy(v => v).ToPipeStringDelimited(applyTextWrap, emptyValue);
+        }
+
+        public static string ToPipeStringDelimited(this IEnumerable<string> values, bool applyTextWrap = false, string emptyValue = null)
+        {
+            if (!string.IsNullOrWhiteSpace(emptyValue))
+            {
+                values = values.ToArray();
+                if (!values.Any())
+                {
+                    return emptyValue;
+                }
+            }
+
+            // ReSharper disable PossibleMultipleEnumeration
+            return applyTextWrap
+                ? "\"" + string.Join("\" | \"", values) + "\""
+                : string.Join(" | ", values);
+            // ReSharper restore PossibleMultipleEnumeration
+        }
+    }
 }

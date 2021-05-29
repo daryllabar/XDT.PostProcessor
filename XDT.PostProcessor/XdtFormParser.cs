@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Diagnostics.Eventing.Reader;
 using System.Linq;
-using System.Runtime.InteropServices;
 using Source.DLaB.Common;
 
 namespace XDT.PostProcessor
@@ -137,11 +135,12 @@ namespace XDT.PostProcessor
             var baseType = type.SubstringByString(0, "Control");
             baseType = string.IsNullOrWhiteSpace(baseType)
                        && type.SubstringByString(0,"<") == "Control"
-                ? "Base"
+                ? "Attribute"
                 : baseType;
             var control = new ControlInfo(name, controlType);
             switch (baseType)
             {
+                case "Attribute":
                 case "Base":
                 case "Date":
                 case "IFrame":
@@ -156,6 +155,10 @@ namespace XDT.PostProcessor
                 case "MultiSelectOptionSet":
                     type = type.SubstringByString("<", ">");
                     form.ControlsByTypeName.AddOrAppend(type.Capitalize() + "ControlNames", control);
+                    if (type == "boolean")
+                    {
+                        baseType = "Boolean";
+                    }
                     break;
                 case "Lookup":
                 case "SubGrid":
