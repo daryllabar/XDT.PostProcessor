@@ -80,7 +80,7 @@ namespace XDT.PostProcessor.Test
                 Sut.WriteAttributeTypes(contents, form);
                 contents.ShouldEqualWithDiff(@"    // Base Attributes
     type AnyAttributeNames = ""any"";
-    type AttributeNames = AnyAttributeNames | BooleanAttributeNames | DateAttributeNames | LookupAttributeNames | MultiSelectAttributeNames | NumberAttributeNames | OptionSetAttributeNames | StringAttributeNames;
+    type AttributeNames = Account_Address1_FreighttermscodeAttributeNames | Address1_FreighttermscodeAttributeNames | AnyAttributeNames | BooleanAttributeNames | DateAttributeNames | NumberAttributeNames | PricelevelLookupAttributeNames | StringAttributeNames | Systemuser_TeamLookupAttributeNames;
     type BooleanAttributeNames = ""boolean"";
     type DateAttributeNames = ""date"";
     type LookupAttributeNames = PricelevelLookupAttributeNames | Systemuser_TeamLookupAttributeNames;
@@ -88,7 +88,7 @@ namespace XDT.PostProcessor.Test
     type NumberAttributeNames = ""number"";
     type OptionSetAttributeNames = Account_Address1_Freighttermscode;
     type StringAttributeNames = ""string"" | ""stringnullable"";
-    // Type Specific Attributes
+    // Form Specific Attribute Types
     type Account_Address1_FreighttermscodeAttributeNames = ""optionSet"";
     type Address1_FreighttermscodeAttributeNames = ""multiselect"";
     type PricelevelLookupAttributeNames = ""lookup"";
@@ -119,7 +119,7 @@ namespace XDT.PostProcessor.Test
     type AttributeControlNames = ""attribute"";
     type BaseControlNames = ""base"";
     type BooleanControlNames = ""boolean"";
-    type ControlNames = AttributeControlNames | BaseControlNames | BooleanControlNames | DateControlNames | IFrameControlNames | KbSearchControlNames | LookupControlNames | MultiSelectControlNames | NumberControlNames | StringControlNames | SubGridControlNames | WebResourceControlNames;
+    type ControlNames = Address1_FreighttermscodeControlNames | AttributeControlNames | BaseControlNames | BooleanControlNames | ContactSubGridControlNames | DateControlNames | IFrameControlNames | KBSearchControlNames | NumberControlNames | PricelevelLookupControlNames | StringControlNames | Systemuser_TeamLookupControlNames | WebResourceControlNames;
     type DateControlNames = ""date"";
     type IFrameControlNames = ""iframe"";
     type KbSearchControlNames = ""kbsearch"";
@@ -129,7 +129,7 @@ namespace XDT.PostProcessor.Test
     type StringControlNames = ""string"";
     type SubGridControlNames = ContactSubGridControlNames;
     type WebResourceControlNames = ""webresource"";
-    // Type Specific Controls
+    // Form Specific Control Types
     type Address1_FreighttermscodeControlNames = ""multiselect"";
     type ContactSubGridControlNames = ""subgrid"";
     type KBSearchControlNames = ""kbsearch"";
@@ -223,7 +223,7 @@ declare namespace Form.account.InteractionCentricDashboard {
         [TestMethod]
         public void WriteFormNamespace_Account_Should_GenerateAttributeTypeNames()
         {
-            ExecuteForAllOptions(MainAccountForm, (file, parser, xrm)=>{
+            ExecuteForAllOptions(MainAccountForm, (file, parser, xrm) => {
                 var output = new List<string>();
                 Sut.WriteFormNamespace(output, file.FormName, parser);
                 output.ShouldEqualWithDiff(GetExpectedAccountFormNamespace(file, xrm));
@@ -260,13 +260,13 @@ declare namespace Form.account.InteractionCentricDashboard {
     >;
     // Base Attributes
     type AnyAttributeNames = ""tickersymbol"";
-    type AttributeNames = AnyAttributeNames | BooleanAttributeNames | DateAttributeNames | LookupAttributeNames | MultiSelectAttributeNames | NumberAttributeNames | OptionSetAttributeNames | StringAttributeNames;
+    type AttributeNames = Account_Address1_FreighttermscodeAttributeNames | Account_Address1_ShippingmethodcodeAttributeNames | Account_CustomertypecodeAttributeNames | Account_IndustrycodeAttributeNames | Account_OwnershipcodeAttributeNames | Account_PaymenttermscodeAttributeNames | Account_PreferredcontactmethodcodeAttributeNames | AccountLookupAttributeNames | AnyAttributeNames | BooleanAttributeNames | ContactLookupAttributeNames | Msdyn_TaxcodeLookupAttributeNames | Msdyn_TravelchargetypeAttributeNames | Msdyn_WorkhourtemplateLookupAttributeNames | NumberAttributeNames | PricelevelLookupAttributeNames | StringAttributeNames | Systemuser_TeamLookupAttributeNames | TerritoryLookupAttributeNames | TransactioncurrencyLookupAttributeNames;
     type BooleanAttributeNames = ""creditonhold"" | ""donotbulkemail"" | ""donotemail"" | ""donotfax"" | ""donotphone"" | ""donotpostalmail"" | ""msdyn_taxexempt"";
     type LookupAttributeNames = AccountLookupAttributeNames | ContactLookupAttributeNames | Msdyn_TaxcodeLookupAttributeNames | Msdyn_WorkhourtemplateLookupAttributeNames | PricelevelLookupAttributeNames | Systemuser_TeamLookupAttributeNames | TerritoryLookupAttributeNames | TransactioncurrencyLookupAttributeNames;
     type NumberAttributeNames = ""address1_latitude"" | ""address1_longitude"" | ""creditlimit"" | ""msdyn_travelcharge"" | ""numberofemployees"" | ""revenue"";
     type OptionSetAttributeNames = Account_Address1_Freighttermscode | Account_Address1_Shippingmethodcode | Account_Customertypecode | Account_Industrycode | Account_Ownershipcode | Account_Paymenttermscode | Account_Preferredcontactmethodcode | Msdyn_Travelchargetype;
     type StringAttributeNames = ""address1_city"" | ""address1_composite"" | ""address1_country"" | ""address1_line1"" | ""address1_line2"" | ""address1_line3"" | ""address1_postalcode"" | ""address1_stateorprovince"" | ""description"" | ""fax"" | ""msdyn_taxexemptnumber"" | ""msdyn_workorderinstructions"" | ""msdyusd_facebook"" | ""msdyusd_twitter"" | ""name"" | ""sic"" | ""telephone1"" | ""websiteurl"";
-    // Type Specific Attributes
+    // Form Specific Attribute Types
     type Account_Address1_FreighttermscodeAttributeNames = ""address1_freighttermscode"";
     type Account_Address1_ShippingmethodcodeAttributeNames = ""address1_shippingmethodcode"";
     type Account_CustomertypecodeAttributeNames = ""customertypecode"";
@@ -287,13 +287,13 @@ declare namespace Form.account.InteractionCentricDashboard {
     type AttributeControlNames = ""name1"" | ""tickersymbol"";
     type BaseControlNames = ""ActionCards"" | ""mapcontrol"" | ""notescontrol"";
     type BooleanControlNames = ""creditonhold"" | ""donotbulkemail"" | ""donotemail"" | ""donotfax"" | ""donotphone"" | ""donotpostalmail"" | ""msdyn_taxexempt"";
-    type ControlNames = AttributeControlNames | BaseControlNames | BooleanControlNames | DateControlNames | IFrameControlNames | KbSearchControlNames | LookupControlNames | MultiSelectControlNames | NumberControlNames | StringControlNames | SubGridControlNames | WebResourceControlNames;
+    type ControlNames = Account_Address1_FreighttermscodeControlNames | Account_Address1_ShippingmethodcodeControlNames | Account_CustomertypecodeControlNames | Account_IndustrycodeControlNames | Account_OwnershipcodeControlNames | Account_PaymenttermscodeControlNames | Account_PreferredcontactmethodcodeControlNames | AccountLookupControlNames | AttributeControlNames | BaseControlNames | BooleanControlNames | ContactLookupControlNames | ContactSubGridControlNames | Msdyn_AccountpricelistSubGridControlNames | Msdyn_TaxcodeLookupControlNames | Msdyn_TravelchargetypeControlNames | Msdyn_WorkhourtemplateLookupControlNames | NumberControlNames | PricelevelLookupControlNames | SharepointdocumentSubGridControlNames | StringControlNames | Systemuser_TeamLookupControlNames | TerritoryLookupControlNames | TransactioncurrencyLookupControlNames;
     type LookupControlNames = AccountLookupControlNames | ContactLookupControlNames | Msdyn_TaxcodeLookupControlNames | Msdyn_WorkhourtemplateLookupControlNames | PricelevelLookupControlNames | Systemuser_TeamLookupControlNames | TerritoryLookupControlNames | TransactioncurrencyLookupControlNames;
     type NumberControlNames = ""address1_latitude"" | ""address1_longitude"" | ""creditlimit"" | ""header_numberofemployees"" | ""header_revenue"" | ""msdyn_travelcharge"";
     type OptionSetAttributeNames = Account_Address1_FreighttermscodeControlNames | Account_Address1_ShippingmethodcodeControlNames | Account_CustomertypecodeControlNames | Account_IndustrycodeControlNames | Account_OwnershipcodeControlNames | Account_PaymenttermscodeControlNames | Account_PreferredcontactmethodcodeControlNames | Msdyn_TravelchargetypeControlNames;
     type StringControlNames = ""address1_composite"" | ""address1_composite_compositionLinkControl_address1_city"" | ""address1_composite_compositionLinkControl_address1_country"" | ""address1_composite_compositionLinkControl_address1_line1"" | ""address1_composite_compositionLinkControl_address1_line2"" | ""address1_composite_compositionLinkControl_address1_line3"" | ""address1_composite_compositionLinkControl_address1_postalcode"" | ""address1_composite_compositionLinkControl_address1_stateorprovince"" | ""description"" | ""fax"" | ""msdyn_taxexemptnumber"" | ""msdyn_workorderinstructions"" | ""msdyusd_facebook"" | ""msdyusd_twitter"" | ""name"" | ""sic"" | ""telephone1"" | ""websiteurl"";
     type SubGridControlNames = ContactSubGridControlNames | Msdyn_AccountpricelistSubGridControlNames | SharepointdocumentSubGridControlNames;
-    // Type Specific Controls
+    // Form Specific Control Types
     type Account_Address1_FreighttermscodeControlNames = ""address1_freighttermscode"";
     type Account_Address1_ShippingmethodcodeControlNames = ""address1_shippingmethodcode"";
     type Account_CustomertypecodeControlNames = ""customertypecode"";
@@ -417,26 +417,6 @@ declare namespace Form.account.InteractionCentricDashboard {
     setValue(attributeName: {file.FormName}.TerritoryLookupAttributeNames, value: {xrm}.EntityReference<""territory""> | null, fireOnChange = true);
     setValue(attributeName: {file.FormName}.TransactioncurrencyLookupAttributeNames, value: {xrm}.EntityReference<""transactioncurrency""> | null, fireOnChange = true);";
             return expected;
-        }
-
-        [TestMethod]
-        public void SingleLineFunctions_Account_Should_GenerateTypings()
-        {
-            ExecuteForAllOptions(MainAccountForm, (file, form, xrm) => {
-                var output = new List<string>();
-                var allTypeUnion = TypingsExtensionLogic.GetAllAttributeAndControlNamesTypeUnion(form, file.FormName);
-                Sut.WriteGetVisible(output, file.FormName, form);
-                output.ShouldEqualWithDiff($"    getVisible(name: {allTypeUnion}): boolean;");
-                output = new List<string>();                
-                Sut.WriteFireOnChange(output, file.FormName, form);
-                output.ShouldEqualWithDiff($"    fireOnChange(attributeName: {file.FormName}.AttributeNames): void;");
-                output = new List<string>();
-                Sut.WriteRemoveOnChange(output, file.FormName, form);
-                output.ShouldEqualWithDiff($"    removeOnChange(attributeName: {file.FormName}.AttributeNames | {file.FormName}.AttributeNames[], handler: (context?: {xrm}.ExecutionContext<{xrm}.Attribute<any>, undefined>) => any): void;");
-                output = new List<string>();
-                Sut.WriteSetVisible(output, file.FormName, form);
-                output.ShouldEqualWithDiff($"    setVisible(name: {allTypeUnion}, visible = true): void;");
-            });
         }
 
         [TestMethod]

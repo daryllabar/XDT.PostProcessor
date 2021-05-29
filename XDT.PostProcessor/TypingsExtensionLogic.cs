@@ -202,10 +202,10 @@ namespace XDT.PostProcessor
                     ? string.Empty
                     : $"    type {name} = {types.ToSortedPipeStringDelimited(false, "string")};";
             }
-            
+
             contents.AddSortedSection(new[]
-            {
-                form.AttributesByTypeName.Count == 0 ? string.Empty : $"    type {DefinedTypes.AllAttributes} = {DefinedTypes.Attributes.ToSortedPipeStringDelimited()};",
+            {                                                                                                    // THIS HAS TO GET FIXED.  SHOULD ONLY RETURN LIST OF ATTRIBUTES THAT WILL BE DEFINED
+                form.AttributesByTypeName.Count == 0 ? string.Empty : $"    type {DefinedTypes.AllAttributes} = {form.AttributesByTypeName.Keys.ToSortedPipeStringDelimited()};",
                 GenerateStandardDefinition(DefinedTypes.AnyAttributes, form.AnyAttributes),
                 GenerateStandardDefinition(DefinedTypes.BooleanAttributes, form.BooleanAttributes),
                 GenerateStandardDefinition(DefinedTypes.DateAttributes, form.DateAttributes),
@@ -217,7 +217,7 @@ namespace XDT.PostProcessor
             }.Where(l => !string.IsNullOrWhiteSpace(l)), "    // Base Attributes");
             contents.AddSortedSection(form.AttributesByTypeName
                                           .Where(kvp => !DefinedTypes.Attributes.Contains(kvp.Key))
-                                          .Select(namesForType => $@"    type {namesForType.Key} = {namesForType.Value.Select(v => v.Name).ToSortedPipeStringDelimited(true)};"), "    // Type Specific Attributes");
+                                          .Select(namesForType => $@"    type {namesForType.Key} = {namesForType.Value.Select(v => v.Name).ToSortedPipeStringDelimited(true)};"), "    // Form Specific Attribute Types");
         }
 
         public void WriteControlTypes(List<string> contents, ParsedXdtForm form)
@@ -253,7 +253,7 @@ namespace XDT.PostProcessor
 
             contents.AddSortedSection(new[]
             {
-                form.ControlsByTypeName.Count == 0 ? string.Empty : $"    type {DefinedTypes.AllControls} = {DefinedTypes.Controls.ToSortedPipeStringDelimited()};",
+                form.ControlsByTypeName.Count == 0 ? string.Empty : $"    type {DefinedTypes.AllControls} = {form.ControlsByTypeName.Keys.ToSortedPipeStringDelimited()};",
                 GenerateStandardDefinition(DefinedTypes.AttributeControls, form.AttributeControls),
                 GenerateStandardDefinition(DefinedTypes.BaseControls, form.BaseControls),
                 GenerateStandardDefinition(DefinedTypes.BooleanControls, form.BooleanControls),
@@ -270,7 +270,7 @@ namespace XDT.PostProcessor
             }.Where(l => !string.IsNullOrWhiteSpace(l)), "    // Base Controls");
             contents.AddSortedSection(form.ControlsByTypeName
                                           .Where(kvp => !DefinedTypes.Controls.Contains(kvp.Key))
-                                          .Select(namesForType => $@"    type {namesForType.Key} = {namesForType.Value.Select(v => v.Name).ToSortedPipeStringDelimited(true)};"), "    // Type Specific Controls");
+                                          .Select(namesForType => $@"    type {namesForType.Key} = {namesForType.Value.Select(v => v.Name).ToSortedPipeStringDelimited(true)};"), "    // Form Specific Control Types");
         }
 
         public void WriteBaseTypes(List<string> contents, ParsedXdtForm form)
@@ -310,12 +310,8 @@ namespace XDT.PostProcessor
         {
             contents.Add($"  interface {formName} extends Form.{table}.{formType}.{formName} {{");
             WriteAddOnChangeValues(contents, formName, form);
-            WriteFireOnChange(contents, formName, form);
             WriteGetValues(contents, formName, form);
-            WriteGetVisible(contents, formName, form);
-            WriteRemoveOnChange(contents, formName, form);
             WriteSetValues(contents, formName, form);
-            WriteSetVisible(contents, formName, form);
             contents.Add("  }"); 
         }
 
@@ -333,16 +329,6 @@ namespace XDT.PostProcessor
             }
         }
 
-        public void WriteFireOnChange(List<string> contents, string formName, ParsedXdtForm form)
-        {
-            if (form.AttributesByTypeName.Count == 0)
-            {
-                return;
-            }
-
-            contents.Add($@"    fireOnChange(attributeName: {formName}.AttributeNames): void;");
-        }
-
         public void WriteGetValues(List<string> contents, string formName, ParsedXdtForm form)
         {
             contents.AddRange(from namesForType in form.AttributesByTypeName.OrderBy(k => k.Key)
@@ -353,27 +339,6 @@ namespace XDT.PostProcessor
                 select $@"    getValue(attributeName: {formName}.{namesForType.Key}): {first.ValueType}{nullable};");
         }
 
-        public void WriteGetVisible(List<string> contents, string formName, ParsedXdtForm form)
-        {
-            var type = GetAllAttributeAndControlNamesTypeUnion(form, formName);
-            if (string.IsNullOrWhiteSpace(type))
-            {
-                return;
-            }
-
-            contents.Add($@"    getVisible(name: {type}): boolean;");
-        }
-
-        public void WriteRemoveOnChange(List<string> contents, string formName, ParsedXdtForm form)
-        {
-            if (form.AttributesByTypeName.Count == 0)
-            {
-                return;
-            }
-
-            contents.Add($@"    removeOnChange(attributeName: {formName}.AttributeNames | {formName}.AttributeNames[], handler: (context?: {Settings.XrmNamespacePrefix}.ExecutionContext<{Settings.XrmNamespacePrefix}.Attribute<any>, undefined>) => any): void;");
-        }
-
         public void WriteSetValues(List<string> contents, string formName, ParsedXdtForm form)
         {
             contents.AddRange(from namesForType in form.AttributesByTypeName.OrderBy(k => k.Key)
@@ -382,17 +347,6 @@ namespace XDT.PostProcessor
                     ? string.Empty
                     : " | null"
                 select $@"    setValue(attributeName: {formName}.{namesForType.Key}, value: {first.ValueType}{nullable}, fireOnChange = true);");
-        }
-
-        public void WriteSetVisible(List<string> contents, string formName, ParsedXdtForm form)
-        {
-            var type = GetAllAttributeAndControlNamesTypeUnion(form, formName);
-            if (string.IsNullOrWhiteSpace(type))
-            {
-                return;
-            }
-
-            contents.Add($@"    setVisible(name: {type}, visible = true): void;");
         }
 
         public static string GetAllAttributeAndControlNamesTypeUnion(ParsedXdtForm form, string formName)
