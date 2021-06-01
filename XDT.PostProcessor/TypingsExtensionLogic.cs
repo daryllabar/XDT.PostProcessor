@@ -45,10 +45,11 @@ namespace XDT.PostProcessor
             public const string DateControls = "DateControlNames";
             // ReSharper disable once InconsistentNaming
             public const string IFrameControls = "IFrameControlNames";
-            public const string KbSearchControls = "KbSearchControlNames";
+            public const string KbSearchControls = "KBSearchControlNames";
             public const string LookupControls = "LookupControlNames";
             public const string MultiSelectControls = "MultiSelectControlNames";
             public const string NumberControls = "NumberControlNames";
+            public const string OptionSetControls = "OptionSetControlNames";
             public const string StringControls = "StringControlNames";
             public const string SubGridControls = "SubGridControlNames";
             public const string WebResourceControls = "WebResourceControlNames";
@@ -63,6 +64,7 @@ namespace XDT.PostProcessor
                 LookupControls,
                 MultiSelectControls,
                 NumberControls,
+                OptionSetControls,
                 StringControls,
                 SubGridControls,
                 WebResourceControls,
@@ -196,7 +198,7 @@ namespace XDT.PostProcessor
             {
                 var types = form.AttributesByTypeName.SelectMany(t => t.Value)
                                 .Where(v => v.AttributeType.SubstringByString(".", "<") == attributeName && v.ValueType != "boolean")
-                                .Select(v => v.ValueType.Capitalize())
+                                .Select(v => v.ValueType.Capitalize() + "AttributeNames")
                                 .ToArray();
                 return types.Length == 0
                     ? string.Empty
@@ -204,8 +206,8 @@ namespace XDT.PostProcessor
             }
 
             contents.AddSortedSection(new[]
-            {                                                                                                    // THIS HAS TO GET FIXED.  SHOULD ONLY RETURN LIST OF ATTRIBUTES THAT WILL BE DEFINED
-                form.AttributesByTypeName.Count == 0 ? string.Empty : $"    type {DefinedTypes.AllAttributes} = {form.AttributesByTypeName.Keys.ToSortedPipeStringDelimited()};",
+            {
+                form.AttributesByTypeName.Count == 0 ? string.Empty : $"    type {DefinedTypes.AllAttributes} = {GetPopulatedBaseAttributeTypes(form).ToSortedPipeStringDelimited()};",
                 GenerateStandardDefinition(DefinedTypes.AnyAttributes, form.AnyAttributes),
                 GenerateStandardDefinition(DefinedTypes.BooleanAttributes, form.BooleanAttributes),
                 GenerateStandardDefinition(DefinedTypes.DateAttributes, form.DateAttributes),
@@ -218,6 +220,27 @@ namespace XDT.PostProcessor
             contents.AddSortedSection(form.AttributesByTypeName
                                           .Where(kvp => !DefinedTypes.Attributes.Contains(kvp.Key))
                                           .Select(namesForType => $@"    type {namesForType.Key} = {namesForType.Value.Select(v => v.Name).ToSortedPipeStringDelimited(true)};"), "    // Form Specific Attribute Types");
+        }
+
+        private static List<string> GetPopulatedBaseAttributeTypes(ParsedXdtForm form)
+        {
+            var baseAttributes = form.AttributesByTypeName.Keys.Where(k => DefinedTypes.Attributes.Contains(k)).ToList();
+            if (form.LookupAttributes.Any())
+            {
+                baseAttributes.Add(DefinedTypes.LookupAttributes);
+            }
+
+            if (form.MultiSelectAttributes.Any())
+            {
+                baseAttributes.Add(DefinedTypes.MultiSelectAttributes);
+            }
+
+            if (form.OptionSetAttributes.Any())
+            {
+                baseAttributes.Add(DefinedTypes.OptionSetAttributes);
+            }
+
+            return baseAttributes;
         }
 
         public void WriteControlTypes(List<string> contents, ParsedXdtForm form)
@@ -253,7 +276,7 @@ namespace XDT.PostProcessor
 
             contents.AddSortedSection(new[]
             {
-                form.ControlsByTypeName.Count == 0 ? string.Empty : $"    type {DefinedTypes.AllControls} = {form.ControlsByTypeName.Keys.ToSortedPipeStringDelimited()};",
+                form.ControlsByTypeName.Count == 0 ? string.Empty : $"    type {DefinedTypes.AllControls} = {GetPopulatedBaseControlTypes(form).ToSortedPipeStringDelimited()};",
                 GenerateStandardDefinition(DefinedTypes.AttributeControls, form.AttributeControls),
                 GenerateStandardDefinition(DefinedTypes.BaseControls, form.BaseControls),
                 GenerateStandardDefinition(DefinedTypes.BooleanControls, form.BooleanControls),
@@ -265,12 +288,33 @@ namespace XDT.PostProcessor
                 GenerateStandardDefinition(DefinedTypes.WebResourceControls, form.WebResourceControls),
                 GenerateLookupDefinition(),
                 GenerateOptionSetDefinition(DefinedTypes.MultiSelectControls, "MultiSelectOptionSetControl"),
-                GenerateOptionSetDefinition(DefinedTypes.OptionSetAttributes, "OptionSetControl"),
+                GenerateOptionSetDefinition(DefinedTypes.OptionSetControls, "OptionSetControl"),
                 GenerateOptionSetDefinition(DefinedTypes.SubGridControls, "SubGridControl"),
             }.Where(l => !string.IsNullOrWhiteSpace(l)), "    // Base Controls");
             contents.AddSortedSection(form.ControlsByTypeName
                                           .Where(kvp => !DefinedTypes.Controls.Contains(kvp.Key))
                                           .Select(namesForType => $@"    type {namesForType.Key} = {namesForType.Value.Select(v => v.Name).ToSortedPipeStringDelimited(true)};"), "    // Form Specific Control Types");
+        }
+
+        private static List<string> GetPopulatedBaseControlTypes(ParsedXdtForm form)
+        {
+            var baseControls = form.ControlsByTypeName.Keys.Where(k => DefinedTypes.Controls.Contains(k)).ToList();
+            if (form.LookupControls.Any())
+            {
+                baseControls.Add(DefinedTypes.LookupControls);
+            }
+
+            if (form.MultiSelectControls.Any())
+            {
+                baseControls.Add(DefinedTypes.MultiSelectControls);
+            }
+
+            if (form.OptionSetControls.Any())
+            {
+                baseControls.Add(DefinedTypes.OptionSetControls);
+            }
+
+            return baseControls;
         }
 
         public void WriteBaseTypes(List<string> contents, ParsedXdtForm form)
@@ -300,6 +344,7 @@ namespace XDT.PostProcessor
             contents.Add($"        {DefaultToStringIfEmpty(DefinedTypes.LookupControls, form.LookupControls)},");
             contents.Add($"        {DefaultToStringIfEmpty(DefinedTypes.MultiSelectControls, form.MultiSelectControls)},");
             contents.Add($"        {DefaultToStringIfEmpty(DefinedTypes.NumberControls, form.NumberControls)},");
+            contents.Add($"        {DefaultToStringIfEmpty(DefinedTypes.OptionSetControls, form.OptionSetControls)},");
             contents.Add($"        {DefaultToStringIfEmpty(DefinedTypes.StringControls, form.StringControls)},");
             contents.Add($"        {DefaultToStringIfEmpty(DefinedTypes.SubGridControls, form.SubGridControls)},");
             contents.Add($"        {DefaultToStringIfEmpty(DefinedTypes.WebResourceControls, form.WebResourceControls)}");
