@@ -62,15 +62,7 @@ namespace XDT.PostProcessor
 
         public string ProcessFile(string input)
         {
-            input = MakeEs6Compatible(input);
             return MakeWebpackCompatible(input);
-        }
-
-        private string MakeEs6Compatible(string input)
-        {
-            return !Settings.XrmQueryMakeEs6Compatible
-                ? input
-                : input.Replace(Settings.Es5RegExParser, Settings.Es6RegExParser);
         }
 
         private string MakeWebpackCompatible(string input)
