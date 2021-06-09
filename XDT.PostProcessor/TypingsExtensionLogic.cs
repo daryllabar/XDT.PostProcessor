@@ -299,20 +299,16 @@ namespace XDT.PostProcessor
         private static List<string> GetPopulatedBaseControlTypes(ParsedXdtForm form)
         {
             var baseControls = form.ControlsByTypeName.Keys.Where(k => DefinedTypes.Controls.Contains(k)).ToList();
-            if (form.LookupControls.Any())
+            var formSpecificControlTypes = new Dictionary<string, List<ControlInfo>>
             {
-                baseControls.Add(DefinedTypes.LookupControls);
-            }
-
-            if (form.MultiSelectControls.Any())
-            {
-                baseControls.Add(DefinedTypes.MultiSelectControls);
-            }
-
-            if (form.OptionSetControls.Any())
-            {
-                baseControls.Add(DefinedTypes.OptionSetControls);
-            }
+                {DefinedTypes.LookupControls, form.LookupControls},
+                {DefinedTypes.MultiSelectControls, form.MultiSelectControls},
+                {DefinedTypes.OptionSetControls, form.OptionSetControls},
+                {DefinedTypes.SubGridControls, form.SubGridControls},
+            };
+            baseControls.AddRange(formSpecificControlTypes
+                                  .Where(kvp => kvp.Value.Any())
+                                  .Select(kvp => kvp.Key));
 
             return baseControls;
         }

@@ -120,7 +120,7 @@ namespace XDT.PostProcessor.Test
     type AttributeControlNames = ""attribute"";
     type BaseControlNames = ""base"";
     type BooleanControlNames = ""boolean"";
-    type ControlNames = AttributeControlNames | BaseControlNames | BooleanControlNames | DateControlNames | IFrameControlNames | KBSearchControlNames | LookupControlNames | MultiSelectControlNames | NumberControlNames | OptionSetControlNames | StringControlNames | WebResourceControlNames;
+    type ControlNames = AttributeControlNames | BaseControlNames | BooleanControlNames | DateControlNames | IFrameControlNames | KBSearchControlNames | LookupControlNames | MultiSelectControlNames | NumberControlNames | OptionSetControlNames | StringControlNames | SubGridControlNames | WebResourceControlNames;
     type DateControlNames = ""date"";
     type IFrameControlNames = ""iframe"";
     type KBSearchControlNames = ""kbsearch"";
@@ -291,7 +291,7 @@ declare namespace Form.account.InteractionCentricDashboard {
     type AttributeControlNames = ""name1"" | ""tickersymbol"";
     type BaseControlNames = ""ActionCards"" | ""mapcontrol"" | ""notescontrol"";
     type BooleanControlNames = ""creditonhold"" | ""donotbulkemail"" | ""donotemail"" | ""donotfax"" | ""donotphone"" | ""donotpostalmail"" | ""msdyn_taxexempt"";
-    type ControlNames = AttributeControlNames | BaseControlNames | BooleanControlNames | LookupControlNames | NumberControlNames | OptionSetControlNames | StringControlNames;
+    type ControlNames = AttributeControlNames | BaseControlNames | BooleanControlNames | LookupControlNames | NumberControlNames | OptionSetControlNames | StringControlNames | SubGridControlNames;
     type LookupControlNames = AccountLookupControlNames | ContactLookupControlNames | Msdyn_TaxcodeLookupControlNames | Msdyn_WorkhourtemplateLookupControlNames | PricelevelLookupControlNames | Systemuser_TeamLookupControlNames | TerritoryLookupControlNames | TransactioncurrencyLookupControlNames;
     type NumberControlNames = ""address1_latitude"" | ""address1_longitude"" | ""creditlimit"" | ""header_numberofemployees"" | ""header_revenue"" | ""msdyn_travelcharge"";
     type OptionSetControlNames = Account_Address1_FreighttermscodeControlNames | Account_Address1_ShippingmethodcodeControlNames | Account_CustomertypecodeControlNames | Account_IndustrycodeControlNames | Account_OwnershipcodeControlNames | Account_PaymenttermscodeControlNames | Account_PreferredcontactmethodcodeControlNames | Msdyn_TravelchargetypeControlNames;
