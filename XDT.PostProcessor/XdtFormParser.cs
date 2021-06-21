@@ -90,7 +90,7 @@ namespace XDT.PostProcessor
                     }
                     break;
                 case "DateAttribute":
-                    att = new AttributeInfo(name, attributeType, "date");
+                    att = new AttributeInfo(name, attributeType, "Date");
                     form.AttributesByTypeName.AddOrAppend("DateAttributeNames", att);
                     form.DateAttributes.Add(att);
                     break;

@@ -22,7 +22,7 @@ namespace XDT.PostProcessor.Test
         public void ShouldParseAttributes(string xrm)
         {
             TestAttribute(xrm + ".Attribute<any>", "any", Form.AnyAttributes);
-            TestAttribute(xrm + ".DateAttribute", "date", Form.DateAttributes);
+            TestAttribute(xrm + ".DateAttribute", "Date", Form.DateAttributes);
             TestAttribute(xrm + ".LookupAttribute<\"systemuser\" | \"team\">", xrm + ".EntityReference<\"systemuser\" | \"team\">", Form.LookupAttributes);
             TestAttribute(xrm + ".LookupAttribute<\"connectionrole\">", xrm + ".EntityReference<\"connectionrole\">", Form.LookupAttributes);
             TestAttribute(xrm + ".MultiSelectOptionSetAttribute<some_multiselect>", "some_multiselect", Form.MultiSelectAttributes);
