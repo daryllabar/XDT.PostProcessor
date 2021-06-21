@@ -16,11 +16,11 @@ namespace XDT.PostProcessor
             var logic = new TypingsExtensionLogic(Settings.Default);
             logic.ProcessAllForms(args[0]);
 
-            if (args.Length >= 2)
-            {
-                var queryLogic = new XrmQueryUpdateLogic(Settings.Default);
-                queryLogic.Process(args[1]);
-            }
+            //if (args.Length >= 2)
+            //{
+            //    var queryLogic = new XrmQueryUpdateLogic(Settings.Default);
+            //    queryLogic.Process(args[1]);
+            //}
         }
     }
 }
