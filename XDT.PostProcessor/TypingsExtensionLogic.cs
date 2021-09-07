@@ -84,7 +84,7 @@ namespace XDT.PostProcessor
                 throw new DirectoryNotFoundException($"\"{rootTypeDirectory}\" does not exist!");
             }
 
-            UpdateDtFile(Path.Combine(rootTypeDirectory, "xrm.d.ts"));
+            UpdateDtFile(Path.Combine(rootTypeDirectory, "xrm.d.ts"), true, true);
             foreach (var table in Directory.GetDirectories(Path.Combine(rootTypeDirectory, "Form")))
             {
                 foreach (var formType in Directory.GetDirectories(table))
@@ -98,10 +98,11 @@ namespace XDT.PostProcessor
             }
         }
 
-        private string[] UpdateDtFile(string path, bool logNoXrmNamespaceOverride = true)
+        private string[] UpdateDtFile(string path, bool logNoXrmNamespaceOverride = true, bool isXrmDTs = false)
         {
             var lines = File.ReadAllLines(path);
-            if (UpdateDtFile(lines, logNoXrmNamespaceOverride))
+            if (UpdateDtFile(lines, logNoXrmNamespaceOverride)
+                | (isXrmDTs && AddFormAttributesAndControlsBases(lines)))
             {
                 File.WriteAllLines(path, lines);
             }
@@ -135,6 +136,72 @@ namespace XDT.PostProcessor
                 hasUpdated = hasUpdated || line != newLine;
             }
             return hasUpdated;
+        }
+
+        public bool AddFormAttributesAndControlsBases(string[] file)
+        {
+            if (!Settings.AddToXrmDefinitionFile)
+            {
+                return false;
+            }
+            file[file.Length-1] = file[file.Length - 1] + Environment.NewLine + @"declare namespace " + Settings.XrmNamespacePrefix + @" {
+  type EmptyFormAttributes = FormAttributesBase<string,string,string,string,string,string,string,string>;
+  type EmptyFormControls = FormControlsBase<string,string,string,string,string,string,string,string,string,string,string,string,string,string>;
+
+  type FormAttributesBase<
+      TAll extends string, 
+      TBoolean extends string,
+      TDate extends string,
+      TLookup extends string,
+      TMultiSelect extends string,
+      TNumber extends string,
+      TOptionSet extends string,
+      TString extends string
+      > = {
+    All: TAll,
+    Boolean: TBoolean,
+    Date: TDate,
+    Lookup: TLookup,
+    MultiSelect: TMultiSelect
+    Number: TNumber,
+    OptionSet: TOptionSet,
+    String: TString,
+  }
+
+  type FormControlsBase<
+      TAll extends string, 
+      TAttributeControl extends string,
+      TBaseControl extends string,
+      TBooleanControl extends string,
+      TDateControl extends string,
+      TIFrame extends string,
+      TKbSearch extends string,
+      TLookup extends string,
+      TMultiSelect extends string,
+      TNumberControl extends string,
+      TOptionSetControl extends string,
+      TStringControl extends string,
+      TSubgrid extends string,
+      TWebResource extends string
+      > = {
+     All: TAll;
+     AttributeControl: TAttributeControl;
+     BaseControl: TBaseControl;
+     BooleanControl: TBooleanControl;
+     DateControl: TDateControl;
+     IFrame: TIFrame;
+     KbSearch: TKbSearch;
+     Lookup: TLookup;
+     MultiSelect: TMultiSelect;
+     NumberControl: TNumberControl;
+     OptionSetControl: TOptionSetControl;
+     StringControl: TStringControl;
+     Subgrid: TSubgrid;
+     WebResource: TWebResource;
+  }
+}
+";
+            return true;
         }
 
         public void CreateFormExt(string rootTypeDirectory, string table, string formType, string fileName, string[] fileContents)

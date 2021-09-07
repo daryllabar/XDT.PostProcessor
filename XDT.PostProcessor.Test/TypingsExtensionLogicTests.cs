@@ -142,7 +142,7 @@ namespace XDT.PostProcessor.Test
 
         [TestMethod]
         public void EmptyDashboard_Should_GenerateEmptyInterface()
-        {;
+        {
             var contents = Sut.CreateFormExtContents("account", "InteractionCentricDashboard", "EmptyDashboard", GetEmptyDashboard());
             var expected = $@"interface EmptyDashboard extends Form.account.InteractionCentricDashboard.EmptyDashboard {{
   }}
@@ -454,6 +454,73 @@ declare namespace Form.account.InteractionCentricDashboard {
             Sut.Settings.XrmNamespaceOverride = null;
             parser = new XdtFormParser().Parse(input);
             action(parser, Sut.Settings.XrmNamespacePrefix);
+        }
+
+        [TestMethod]
+        public void FormAttributesAndControlsBases_Should_BeAdded()
+        {
+            var file = new[] { "" };
+            Sut.AddFormAttributesAndControlsBases(file);
+            var xrm = Sut.Settings.XrmNamespacePrefix;
+
+            string.Join(Environment.NewLine, file).ShouldEqualWithDiff(@"
+declare namespace {XRMXRM} {
+  type EmptyFormAttributes = FormAttributesBase<string,string,string,string,string,string,string,string>;
+  type EmptyFormControls = FormControlsBase<string,string,string,string,string,string,string,string,string,string,string,string,string,string>;
+
+  type FormAttributesBase<
+      TAll extends string, 
+      TBoolean extends string,
+      TDate extends string,
+      TLookup extends string,
+      TMultiSelect extends string,
+      TNumber extends string,
+      TOptionSet extends string,
+      TString extends string
+      > = {
+    All: TAll,
+    Boolean: TBoolean,
+    Date: TDate,
+    Lookup: TLookup,
+    MultiSelect: TMultiSelect
+    Number: TNumber,
+    OptionSet: TOptionSet,
+    String: TString,
+  }
+
+  type FormControlsBase<
+      TAll extends string, 
+      TAttributeControl extends string,
+      TBaseControl extends string,
+      TBooleanControl extends string,
+      TDateControl extends string,
+      TIFrame extends string,
+      TKbSearch extends string,
+      TLookup extends string,
+      TMultiSelect extends string,
+      TNumberControl extends string,
+      TOptionSetControl extends string,
+      TStringControl extends string,
+      TSubgrid extends string,
+      TWebResource extends string
+      > = {
+     All: TAll;
+     AttributeControl: TAttributeControl;
+     BaseControl: TBaseControl;
+     BooleanControl: TBooleanControl;
+     DateControl: TDateControl;
+     IFrame: TIFrame;
+     KbSearch: TKbSearch;
+     Lookup: TLookup;
+     MultiSelect: TMultiSelect;
+     NumberControl: TNumberControl;
+     OptionSetControl: TOptionSetControl;
+     StringControl: TStringControl;
+     Subgrid: TSubgrid;
+     WebResource: TWebResource;
+  }
+}
+".Replace("{XRMXRM}", xrm));
         }
     }
 }
