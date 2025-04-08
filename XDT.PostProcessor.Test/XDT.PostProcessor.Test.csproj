@@ -127,6 +127,9 @@
     <None Include="Typings\Form\systemuser\Main\UserformBusiness.d.ts" />
     <None Include="Typings\Form\systemuser\Quick\UserHierarchyTileForm.d.ts" />
   </ItemGroup>
+  <ItemGroup>
+    <TypeScriptCompile Include="Typings\Form\contact\Main\InviteWebForm.d.ts" />
+  </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

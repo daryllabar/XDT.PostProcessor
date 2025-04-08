@@ -73,6 +73,23 @@ namespace XDT.PostProcessor.Test
         }
 
         [TestMethod]
+        public void WriteAttributeTypes_MissingNumberAttributes_Should_NotIncludeNumberAttributesInAttributesType()
+        {
+            ExecuteForAllOptions(GetInviteWebForm(), (form, xrm) =>
+            {
+                var contents = new List<string>();
+                Sut.WriteAttributeTypes(contents, form);
+                Assert.IsTrue(contents[1].Trim().StartsWith("type AttributeNames = "), "Expected the item at index 1 to be the declaration of hte Attribute Names type!");
+                Assert.IsFalse(contents[1].Trim().Contains("NumberAttributeNames"));
+
+                contents = new List<string>();
+                Sut.WriteControlTypes(contents, form);
+                Assert.IsTrue(contents[1].Trim().StartsWith("type ControlNames = "), "Expected the item at index 1 to be the declaration of hte Control Names type!");
+                Assert.IsFalse(contents[1].Trim().Contains("NumberControlNames"));
+            });
+        }
+
+        [TestMethod]
         public void WriteAttributeTypes_AllTypes_Should_GenerateFormAttributes()
         {
             ExecuteForAllOptions(GetFormWithAllTypes(), (form, xrm) =>
@@ -144,9 +161,9 @@ namespace XDT.PostProcessor.Test
         public void EmptyDashboard_Should_GenerateEmptyInterface()
         {
             var contents = Sut.CreateFormExtContents("account", "InteractionCentricDashboard", "EmptyDashboard", GetEmptyDashboard());
-            var expected = $@"interface EmptyDashboard extends Form.account.InteractionCentricDashboard.EmptyDashboard {{
-  }}
-}}";
+            var expected = @"interface EmptyDashboard extends Form.account.InteractionCentricDashboard.EmptyDashboard {
+  }
+}";
             // Only grab interface portion
             contents = "interface EmptyDashboard" + contents.SubstringByString("interface EmptyDashboard");
             contents.ShouldEqualWithDiff(expected);  
@@ -183,7 +200,117 @@ declare namespace Form.account.InteractionCentricDashboard {
     getControl(controlName: string): undefined;
   }
 }
-".Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+".Split(new[] { Environment.NewLine, "/n" }, StringSplitOptions.None);
+        }
+
+        private static string[] GetInviteWebForm()
+        {
+            return @"
+declare namespace Form.contact.Main {
+  namespace InviteWebForm {
+    namespace Tabs {
+    }
+    interface Attributes extends XdtXrm.AttributeCollectionBase {
+      get(name: ""birthdate""): XdtXrm.DateAttribute | null;
+      get(name: ""emailaddress1""): XdtXrm.Attribute<string>;
+      get(name: ""familystatuscode""): XdtXrm.OptionSetAttribute<contact_familystatuscode> | null;
+      get(name: ""firstname""): XdtXrm.Attribute<string>;
+      get(name: ""industrycode""): XdtXrm.OptionSetAttribute<number> | null;
+      get(name: ""lastname""): XdtXrm.Attribute<string>;
+      get(name: ""middlename""): XdtXrm.Attribute<string> | null;
+      get(name: ""mobilephone""): XdtXrm.Attribute<string> | null;
+      get(name: ""name""): XdtXrm.Attribute<string> | null;
+      get(name: ""ownerid""): XdtXrm.LookupAttribute<""systemuser"" | ""team"">;
+      get(name: ""parentaccountid""): XdtXrm.LookupAttribute<""account""> | null;
+      get(name: ""spousesname""): XdtXrm.Attribute<string> | null;
+      get(name: ""statecode""): XdtXrm.OptionSetAttribute<contact_statecode>;
+      get(name: ""telephone1""): XdtXrm.Attribute<string>;
+      get(name: ""websiteurl""): XdtXrm.Attribute<string> | null;
+      get(name: string): undefined;
+      get(): XdtXrm.Attribute<any>[];
+      get(index: number): XdtXrm.Attribute<any>;
+      get(chooser: (item: XdtXrm.Attribute<any>, index: number) => boolean): XdtXrm.Attribute<any>[];
+    }
+    interface Controls extends XdtXrm.ControlCollectionBase {
+      get(name: ""emailaddress1""): XdtXrm.StringControl;
+      get(name: ""firstname""): XdtXrm.StringControl;
+      get(name: ""footer_statecode""): XdtXrm.OptionSetControl<contact_statecode>;
+      get(name: ""header_process_birthdate""): XdtXrm.DateControl | null;
+      get(name: ""header_process_emailaddress1""): XdtXrm.StringControl | null;
+      get(name: ""header_process_familystatuscode""): XdtXrm.OptionSetControl<contact_familystatuscode> | null;
+      get(name: ""header_process_firstname""): XdtXrm.StringControl | null;
+      get(name: ""header_process_industrycode""): XdtXrm.OptionSetControl<number> | null;
+      get(name: ""header_process_lastname""): XdtXrm.StringControl | null;
+      get(name: ""header_process_middlename""): XdtXrm.StringControl | null;
+      get(name: ""header_process_mobilephone""): XdtXrm.StringControl | null;
+      get(name: ""header_process_name""): XdtXrm.StringControl | null;
+      get(name: ""header_process_parentaccountid""): XdtXrm.LookupControl<""account""> | null;
+      get(name: ""header_process_spousesname""): XdtXrm.StringControl | null;
+      get(name: ""header_process_telephone1""): XdtXrm.StringControl | null;
+      get(name: ""header_process_websiteurl""): XdtXrm.StringControl | null;
+      get(name: ""lastname""): XdtXrm.StringControl;
+      get(name: ""ownerid""): XdtXrm.LookupControl<""systemuser"" | ""team"">;
+      get(name: ""telephone1""): XdtXrm.StringControl;
+      get(name: string): undefined;
+      get(): XdtXrm.BaseControl[];
+      get(index: number): XdtXrm.BaseControl;
+      get(chooser: (item: XdtXrm.BaseControl, index: number) => boolean): XdtXrm.BaseControl[];
+    }
+    interface QuickViewForms extends XdtXrm.QuickViewFormCollectionBase {
+      get(name: string): undefined;
+      get(): XdtXrm.QuickViewFormBase[];
+      get(index: number): XdtXrm.QuickViewFormBase;
+      get(chooser: (item: XdtXrm.QuickViewFormBase, index: number) => boolean): XdtXrm.QuickViewFormBase[];
+    }
+    interface Tabs extends XdtXrm.TabCollectionBase {
+      get(name: string): undefined;
+      get(): XdtXrm.PageTab<XdtXrm.Collection<XdtXrm.PageSection>>[];
+      get(index: number): XdtXrm.PageTab<XdtXrm.Collection<XdtXrm.PageSection>>;
+      get(chooser: (item: XdtXrm.PageTab<XdtXrm.Collection<XdtXrm.PageSection>>, index: number) => boolean): XdtXrm.PageTab<XdtXrm.Collection<XdtXrm.PageSection>>[];
+    }
+  }
+  interface InviteWebForm extends XdtXrm.PageBase<InviteWebForm.Attributes,InviteWebForm.Tabs,InviteWebForm.Controls,InviteWebForm.QuickViewForms> {
+    getAttribute(attributeName: ""birthdate""): XdtXrm.DateAttribute | null;
+    getAttribute(attributeName: ""emailaddress1""): XdtXrm.Attribute<string>;
+    getAttribute(attributeName: ""familystatuscode""): XdtXrm.OptionSetAttribute<contact_familystatuscode> | null;
+    getAttribute(attributeName: ""firstname""): XdtXrm.Attribute<string>;
+    getAttribute(attributeName: ""industrycode""): XdtXrm.OptionSetAttribute<number> | null;
+    getAttribute(attributeName: ""lastname""): XdtXrm.Attribute<string>;
+    getAttribute(attributeName: ""middlename""): XdtXrm.Attribute<string> | null;
+    getAttribute(attributeName: ""mobilephone""): XdtXrm.Attribute<string> | null;
+    getAttribute(attributeName: ""name""): XdtXrm.Attribute<string> | null;
+    getAttribute(attributeName: ""ownerid""): XdtXrm.LookupAttribute<""systemuser"" | ""team"">;
+    getAttribute(attributeName: ""parentaccountid""): XdtXrm.LookupAttribute<""account""> | null;
+    getAttribute(attributeName: ""spousesname""): XdtXrm.Attribute<string> | null;
+    getAttribute(attributeName: ""statecode""): XdtXrm.OptionSetAttribute<contact_statecode>;
+    getAttribute(attributeName: ""telephone1""): XdtXrm.Attribute<string>;
+    getAttribute(attributeName: ""websiteurl""): XdtXrm.Attribute<string> | null;
+    getAttribute(attributeName: string): undefined;
+    getAttribute(delegateFunction: XdtXrm.Collection.MatchingDelegate<XdtXrm.Attribute<any>>): XdtXrm.Attribute<any>[];
+    getControl(controlName: ""emailaddress1""): XdtXrm.StringControl;
+    getControl(controlName: ""firstname""): XdtXrm.StringControl;
+    getControl(controlName: ""footer_statecode""): XdtXrm.OptionSetControl<contact_statecode>;
+    getControl(controlName: ""header_process_birthdate""): XdtXrm.DateControl | null;
+    getControl(controlName: ""header_process_emailaddress1""): XdtXrm.StringControl | null;
+    getControl(controlName: ""header_process_familystatuscode""): XdtXrm.OptionSetControl<contact_familystatuscode> | null;
+    getControl(controlName: ""header_process_firstname""): XdtXrm.StringControl | null;
+    getControl(controlName: ""header_process_industrycode""): XdtXrm.OptionSetControl<number> | null;
+    getControl(controlName: ""header_process_lastname""): XdtXrm.StringControl | null;
+    getControl(controlName: ""header_process_middlename""): XdtXrm.StringControl | null;
+    getControl(controlName: ""header_process_mobilephone""): XdtXrm.StringControl | null;
+    getControl(controlName: ""header_process_name""): XdtXrm.StringControl | null;
+    getControl(controlName: ""header_process_parentaccountid""): XdtXrm.LookupControl<""account""> | null;
+    getControl(controlName: ""header_process_spousesname""): XdtXrm.StringControl | null;
+    getControl(controlName: ""header_process_telephone1""): XdtXrm.StringControl | null;
+    getControl(controlName: ""header_process_websiteurl""): XdtXrm.StringControl | null;
+    getControl(controlName: ""lastname""): XdtXrm.StringControl;
+    getControl(controlName: ""ownerid""): XdtXrm.LookupControl<""systemuser"" | ""team"">;
+    getControl(controlName: ""telephone1""): XdtXrm.StringControl;
+    getControl(controlName: string): undefined;
+    getControl(delegateFunction: XdtXrm.Collection.MatchingDelegate<XdtXrm.Control<any>>): XdtXrm.Control<any>[];
+  }
+}
+".Split(new[] { Environment.NewLine, "/n" }, StringSplitOptions.None);
         }
         private static string[] GetFormWithAllTypes()
         {
@@ -220,7 +347,7 @@ declare namespace Form.account.InteractionCentricDashboard {
     getControl(controlName: string): undefined;
   }
 }
-".Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+".Split(new[] { Environment.NewLine, "\n" }, StringSplitOptions.None);
         }
 
         [TestMethod]
@@ -400,26 +527,26 @@ declare namespace Form.account.InteractionCentricDashboard {
         }
         private static string GetExpectedAccountFormInterfaceSetValue(FileHelper file, string xrm)
         {
-            var expected = $@"    setValue(attributeName: {file.FormName}.Account_Address1_FreighttermscodeAttributeNames, value: account_address1_freighttermscode | null, fireOnChange = true);
-    setValue(attributeName: {file.FormName}.Account_Address1_ShippingmethodcodeAttributeNames, value: account_address1_shippingmethodcode | null, fireOnChange = true);
-    setValue(attributeName: {file.FormName}.Account_CustomertypecodeAttributeNames, value: account_customertypecode | null, fireOnChange = true);
-    setValue(attributeName: {file.FormName}.Account_IndustrycodeAttributeNames, value: account_industrycode | null, fireOnChange = true);
-    setValue(attributeName: {file.FormName}.Account_OwnershipcodeAttributeNames, value: account_ownershipcode | null, fireOnChange = true);
-    setValue(attributeName: {file.FormName}.Account_PaymenttermscodeAttributeNames, value: account_paymenttermscode | null, fireOnChange = true);
-    setValue(attributeName: {file.FormName}.Account_PreferredcontactmethodcodeAttributeNames, value: account_preferredcontactmethodcode | null, fireOnChange = true);
-    setValue(attributeName: {file.FormName}.AccountLookupAttributeNames, value: {xrm}.EntityReference<""account""> | null, fireOnChange = true);
-    setValue(attributeName: {file.FormName}.AnyAttributeNames, value: any | null, fireOnChange = true);
-    setValue(attributeName: {file.FormName}.BooleanAttributeNames, value: boolean, fireOnChange = true);
-    setValue(attributeName: {file.FormName}.ContactLookupAttributeNames, value: {xrm}.EntityReference<""contact""> | null, fireOnChange = true);
-    setValue(attributeName: {file.FormName}.Msdyn_TaxcodeLookupAttributeNames, value: {xrm}.EntityReference<""msdyn_taxcode""> | null, fireOnChange = true);
-    setValue(attributeName: {file.FormName}.Msdyn_TravelchargetypeAttributeNames, value: msdyn_travelchargetype | null, fireOnChange = true);
-    setValue(attributeName: {file.FormName}.Msdyn_WorkhourtemplateLookupAttributeNames, value: {xrm}.EntityReference<""msdyn_workhourtemplate""> | null, fireOnChange = true);
-    setValue(attributeName: {file.FormName}.NumberAttributeNames, value: number | null, fireOnChange = true);
-    setValue(attributeName: {file.FormName}.PricelevelLookupAttributeNames, value: {xrm}.EntityReference<""pricelevel""> | null, fireOnChange = true);
-    setValue(attributeName: {file.FormName}.StringAttributeNames, value: string, fireOnChange = true);
-    setValue(attributeName: {file.FormName}.Systemuser_TeamLookupAttributeNames, value: {xrm}.EntityReference<""systemuser"" | ""team""> | null, fireOnChange = true);
-    setValue(attributeName: {file.FormName}.TerritoryLookupAttributeNames, value: {xrm}.EntityReference<""territory""> | null, fireOnChange = true);
-    setValue(attributeName: {file.FormName}.TransactioncurrencyLookupAttributeNames, value: {xrm}.EntityReference<""transactioncurrency""> | null, fireOnChange = true);";
+            var expected = $@"    setValue(attributeName: {file.FormName}.Account_Address1_FreighttermscodeAttributeNames, value: account_address1_freighttermscode | null, fireOnChange?: boolean): void;
+    setValue(attributeName: {file.FormName}.Account_Address1_ShippingmethodcodeAttributeNames, value: account_address1_shippingmethodcode | null, fireOnChange?: boolean): void;
+    setValue(attributeName: {file.FormName}.Account_CustomertypecodeAttributeNames, value: account_customertypecode | null, fireOnChange?: boolean): void;
+    setValue(attributeName: {file.FormName}.Account_IndustrycodeAttributeNames, value: account_industrycode | null, fireOnChange?: boolean): void;
+    setValue(attributeName: {file.FormName}.Account_OwnershipcodeAttributeNames, value: account_ownershipcode | null, fireOnChange?: boolean): void;
+    setValue(attributeName: {file.FormName}.Account_PaymenttermscodeAttributeNames, value: account_paymenttermscode | null, fireOnChange?: boolean): void;
+    setValue(attributeName: {file.FormName}.Account_PreferredcontactmethodcodeAttributeNames, value: account_preferredcontactmethodcode | null, fireOnChange?: boolean): void;
+    setValue(attributeName: {file.FormName}.AccountLookupAttributeNames, value: {xrm}.EntityReference<""account""> | null, fireOnChange?: boolean): void;
+    setValue(attributeName: {file.FormName}.AnyAttributeNames, value: any | null, fireOnChange?: boolean): void;
+    setValue(attributeName: {file.FormName}.BooleanAttributeNames, value: boolean, fireOnChange?: boolean): void;
+    setValue(attributeName: {file.FormName}.ContactLookupAttributeNames, value: {xrm}.EntityReference<""contact""> | null, fireOnChange?: boolean): void;
+    setValue(attributeName: {file.FormName}.Msdyn_TaxcodeLookupAttributeNames, value: {xrm}.EntityReference<""msdyn_taxcode""> | null, fireOnChange?: boolean): void;
+    setValue(attributeName: {file.FormName}.Msdyn_TravelchargetypeAttributeNames, value: msdyn_travelchargetype | null, fireOnChange?: boolean): void;
+    setValue(attributeName: {file.FormName}.Msdyn_WorkhourtemplateLookupAttributeNames, value: {xrm}.EntityReference<""msdyn_workhourtemplate""> | null, fireOnChange?: boolean): void;
+    setValue(attributeName: {file.FormName}.NumberAttributeNames, value: number | null, fireOnChange?: boolean): void;
+    setValue(attributeName: {file.FormName}.PricelevelLookupAttributeNames, value: {xrm}.EntityReference<""pricelevel""> | null, fireOnChange?: boolean): void;
+    setValue(attributeName: {file.FormName}.StringAttributeNames, value: string, fireOnChange?: boolean): void;
+    setValue(attributeName: {file.FormName}.Systemuser_TeamLookupAttributeNames, value: {xrm}.EntityReference<""systemuser"" | ""team""> | null, fireOnChange?: boolean): void;
+    setValue(attributeName: {file.FormName}.TerritoryLookupAttributeNames, value: {xrm}.EntityReference<""territory""> | null, fireOnChange?: boolean): void;
+    setValue(attributeName: {file.FormName}.TransactioncurrencyLookupAttributeNames, value: {xrm}.EntityReference<""transactioncurrency""> | null, fireOnChange?: boolean): void;";
             return expected;
         }
 

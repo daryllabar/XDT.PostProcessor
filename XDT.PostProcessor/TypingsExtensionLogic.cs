@@ -144,62 +144,53 @@ namespace XDT.PostProcessor
             {
                 return false;
             }
-            file[file.Length-1] = file[file.Length - 1] + Environment.NewLine + @"declare namespace " + Settings.XrmNamespacePrefix + @" {
-  type EmptyFormAttributes = FormAttributesBase<string,string,string,string,string,string,string,string>;
-  type EmptyFormControls = FormControlsBase<string,string,string,string,string,string,string,string,string,string,string,string,string,string>;
-
-  type FormAttributesBase<
-      TAll extends string, 
-      TBoolean extends string,
-      TDate extends string,
-      TLookup extends string,
-      TMultiSelect extends string,
-      TNumber extends string,
-      TOptionSet extends string,
-      TString extends string
-      > = {
-    All: TAll,
-    Boolean: TBoolean,
-    Date: TDate,
-    Lookup: TLookup,
-    MultiSelect: TMultiSelect
-    Number: TNumber,
-    OptionSet: TOptionSet,
-    String: TString,
+            file[file.Length-1] = file[file.Length - 1] + Environment.NewLine + Environment.NewLine + @"  // Added via XDT.PostProcessor
+  declare namespace " + Settings.XrmNamespacePrefix + @" {
+    type EmptyFormAttributes = FormAttributesBase<string, string, string, string, string, string, string, string>;
+    type EmptyFormControls = FormControlsBase<string, string, string, string, string, string, string, string, string, string, string, string, string, string>;
+    type FormAttributesBase<TAll extends string, TBoolean extends string, TDate extends string, TLookup extends string, TMultiSelect extends string, TNumber extends string, TOptionSet extends string, TString extends string> = {
+      All: TAll;
+      Boolean: TBoolean;
+      Date: TDate;
+      Lookup: TLookup;
+      MultiSelect: TMultiSelect;
+      Number: TNumber;
+      OptionSet: TOptionSet;
+      String: TString;
+    };
+    type FormControlsBase<TAll extends string, TAttributeControl extends string, TBaseControl extends string, TBooleanControl extends string, TDateControl extends string, TIFrame extends string, TKbSearch extends string, TLookup extends string, TMultiSelect extends string, TNumberControl extends string, TOptionSetControl extends string, TStringControl extends string, TSubgrid extends string, TWebResource extends string> = {
+      All: TAll;
+      AttributeControl: TAttributeControl;
+      BaseControl: TBaseControl;
+      BooleanControl: TBooleanControl;
+      DateControl: TDateControl;
+      IFrame: TIFrame;
+      KbSearch: TKbSearch;
+      Lookup: TLookup;
+      MultiSelect: TMultiSelect;
+      NumberControl: TNumberControl;
+      OptionSetControl: TOptionSetControl;
+      StringControl: TStringControl;
+      Subgrid: TSubgrid;
+        WebResource: TWebResource;
+    };
+    /**
+     * Interface for a generic XdtXrm.Page
+     */
+    interface FormContext extends XdtXrm.PageBase<any, any, any> {
+      /**
+       * Generic getAttribute
+       */
+      getAttribute(attrName: string): XdtXrm.Attribute<any> | undefined;
+      /**
+       * Generic getControl
+       */
+      getControl(ctrlName: string): XdtXrm.AnyControl | undefined;
+    }
+    interface BaseExecutionContext extends XdtXrm.ExecutionContext<any, any> {
+      getFormContext<T extends XdtXrm.PageBase<any, any, any>>(): T;
+    }
   }
-
-  type FormControlsBase<
-      TAll extends string, 
-      TAttributeControl extends string,
-      TBaseControl extends string,
-      TBooleanControl extends string,
-      TDateControl extends string,
-      TIFrame extends string,
-      TKbSearch extends string,
-      TLookup extends string,
-      TMultiSelect extends string,
-      TNumberControl extends string,
-      TOptionSetControl extends string,
-      TStringControl extends string,
-      TSubgrid extends string,
-      TWebResource extends string
-      > = {
-     All: TAll;
-     AttributeControl: TAttributeControl;
-     BaseControl: TBaseControl;
-     BooleanControl: TBooleanControl;
-     DateControl: TDateControl;
-     IFrame: TIFrame;
-     KbSearch: TKbSearch;
-     Lookup: TLookup;
-     MultiSelect: TMultiSelect;
-     NumberControl: TNumberControl;
-     OptionSetControl: TOptionSetControl;
-     StringControl: TStringControl;
-     Subgrid: TSubgrid;
-     WebResource: TWebResource;
-  }
-}
 ";
             return true;
         }
@@ -454,7 +445,7 @@ namespace XDT.PostProcessor
                 let nullable = NonNullableValueTypes.Contains(namesForType.Key)
                     ? string.Empty
                     : " | null"
-                select $@"    setValue(attributeName: {formName}.{namesForType.Key}, value: {first.ValueType}{nullable}, fireOnChange = true);");
+                select $@"    setValue(attributeName: {formName}.{namesForType.Key}, value: {first.ValueType}{nullable}, fireOnChange?: boolean): void;");
         }
 
         public static string GetAllAttributeAndControlNamesTypeUnion(ParsedXdtForm form, string formName)

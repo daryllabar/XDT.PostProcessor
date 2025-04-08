@@ -32,6 +32,16 @@ namespace XDT.PostProcessor.Test
                 return;
             }
 
+            if (actualValue.Contains('\r'))
+            {
+                actualValue = actualValue.Replace("\r", "");
+            }
+
+            if (expectedValue.Contains('\r'))
+            {
+                expectedValue = expectedValue.Replace("\r", "");
+            }
+
             if (actualValue.Equals(expectedValue, StringComparison.Ordinal)) return;
 
             var lines = new List<string>();

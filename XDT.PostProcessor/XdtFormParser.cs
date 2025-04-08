@@ -79,6 +79,11 @@ namespace XDT.PostProcessor
                 case "MultiSelectOptionSetAttribute":
                     type = type.SubstringByString("<", ">");
                     var att = new AttributeInfo(name, attributeType, type);
+                    if (baseType == "OptionSetAttribute" && type == "number")
+                    {
+                        // not sure why, but some option sets aren't getting generated with a type.  Don't define a type for it.
+                        return;
+                    }
                     form.AttributesByTypeName.AddOrAppend(type.Capitalize() + "AttributeNames", att);
                     if (form.AttributesByXdtType.TryGetValue(type, out var list) || form.AttributesByXdtType.TryGetValue(baseType, out list))
                     {
@@ -154,6 +159,11 @@ namespace XDT.PostProcessor
                 case "OptionSet":
                 case "MultiSelectOptionSet":
                     type = type.SubstringByString("<", ">");
+                    if (type == "number")
+                    {
+                        // not sure why, but some option sets aren't getting generated with a type.  Don't define a type for it.
+                        return;
+                    }
                     form.ControlsByTypeName.AddOrAppend(type.Capitalize() + "ControlNames", control);
                     if (type == "boolean")
                     {
