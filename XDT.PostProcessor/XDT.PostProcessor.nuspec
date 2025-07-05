@@ -2,7 +2,7 @@
 <package xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <metadata xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">    
     <id>Xdt.PostProcessor</id>
-    <version>1.0.0.16</version>
+    <version>1.0.0.17</version>
     <authors>Daryl LaBar</authors>
     <license type="expression">MIT</license>
     <icon>images\icon.png</icon>
