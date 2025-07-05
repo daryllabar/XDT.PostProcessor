@@ -70,9 +70,9 @@ namespace XDT.PostProcessor.Test
 
             if (firstDifference >= 0)
             {
-                var start = firstDifference < 20
+                var start = firstDifference < 10
                     ? 0
-                    : firstDifference - 20;
+                    : firstDifference - 10;
                 var end = start + 20 > lines.Count - 1
                     ? lines.Count - 1
                     : start + 20;

@@ -510,7 +510,7 @@ declare namespace Form.account.InteractionCentricDashboard {
     getValue(attributeName: {file.FormName}.Msdyn_WorkhourtemplateLookupAttributeNames): {xrm}.EntityReference<""msdyn_workhourtemplate""> | null;
     getValue(attributeName: {file.FormName}.NumberAttributeNames): number | null;
     getValue(attributeName: {file.FormName}.PricelevelLookupAttributeNames): {xrm}.EntityReference<""pricelevel""> | null;
-    getValue(attributeName: {file.FormName}.StringAttributeNames): string;
+    getValue(attributeName: {file.FormName}.StringAttributeNames): string | null;
     getValue(attributeName: {file.FormName}.Systemuser_TeamLookupAttributeNames): {xrm}.EntityReference<""systemuser"" | ""team""> | null;
     getValue(attributeName: {file.FormName}.TerritoryLookupAttributeNames): {xrm}.EntityReference<""territory""> | null;
     getValue(attributeName: {file.FormName}.TransactioncurrencyLookupAttributeNames): {xrm}.EntityReference<""transactioncurrency""> | null;";
@@ -543,7 +543,7 @@ declare namespace Form.account.InteractionCentricDashboard {
     setValue(attributeName: {file.FormName}.Msdyn_WorkhourtemplateLookupAttributeNames, value: {xrm}.EntityReference<""msdyn_workhourtemplate""> | null, fireOnChange?: boolean): void;
     setValue(attributeName: {file.FormName}.NumberAttributeNames, value: number | null, fireOnChange?: boolean): void;
     setValue(attributeName: {file.FormName}.PricelevelLookupAttributeNames, value: {xrm}.EntityReference<""pricelevel""> | null, fireOnChange?: boolean): void;
-    setValue(attributeName: {file.FormName}.StringAttributeNames, value: string, fireOnChange?: boolean): void;
+    setValue(attributeName: {file.FormName}.StringAttributeNames, value: string | null, fireOnChange?: boolean): void;
     setValue(attributeName: {file.FormName}.Systemuser_TeamLookupAttributeNames, value: {xrm}.EntityReference<""systemuser"" | ""team""> | null, fireOnChange?: boolean): void;
     setValue(attributeName: {file.FormName}.TerritoryLookupAttributeNames, value: {xrm}.EntityReference<""territory""> | null, fireOnChange?: boolean): void;
     setValue(attributeName: {file.FormName}.TransactioncurrencyLookupAttributeNames, value: {xrm}.EntityReference<""transactioncurrency""> | null, fireOnChange?: boolean): void;";
@@ -591,60 +591,52 @@ declare namespace Form.account.InteractionCentricDashboard {
             var xrm = Sut.Settings.XrmNamespacePrefix;
 
             string.Join(Environment.NewLine, file).ShouldEqualWithDiff(@"
+
+// Added via XDT.PostProcessor
 declare namespace {XRMXRM} {
-  type EmptyFormAttributes = FormAttributesBase<string,string,string,string,string,string,string,string>;
-  type EmptyFormControls = FormControlsBase<string,string,string,string,string,string,string,string,string,string,string,string,string,string>;
-
-  type FormAttributesBase<
-      TAll extends string, 
-      TBoolean extends string,
-      TDate extends string,
-      TLookup extends string,
-      TMultiSelect extends string,
-      TNumber extends string,
-      TOptionSet extends string,
-      TString extends string
-      > = {
-    All: TAll,
-    Boolean: TBoolean,
-    Date: TDate,
-    Lookup: TLookup,
-    MultiSelect: TMultiSelect
-    Number: TNumber,
-    OptionSet: TOptionSet,
-    String: TString,
+  type EmptyFormAttributes = FormAttributesBase<string, string, string, string, string, string, string, string>;
+  type EmptyFormControls = FormControlsBase<string, string, string, string, string, string, string, string, string, string, string, string, string, string>;
+  type FormAttributesBase<TAll extends string, TBoolean extends string, TDate extends string, TLookup extends string, TMultiSelect extends string, TNumber extends string, TOptionSet extends string, TString extends string> = {
+    All: TAll;
+    Boolean: TBoolean;
+    Date: TDate;
+    Lookup: TLookup;
+    MultiSelect: TMultiSelect;
+    Number: TNumber;
+    OptionSet: TOptionSet;
+    String: TString;
+  };
+  type FormControlsBase<TAll extends string, TAttributeControl extends string, TBaseControl extends string, TBooleanControl extends string, TDateControl extends string, TIFrame extends string, TKbSearch extends string, TLookup extends string, TMultiSelect extends string, TNumberControl extends string, TOptionSetControl extends string, TStringControl extends string, TSubgrid extends string, TWebResource extends string> = {
+    All: TAll;
+    AttributeControl: TAttributeControl;
+    BaseControl: TBaseControl;
+    BooleanControl: TBooleanControl;
+    DateControl: TDateControl;
+    IFrame: TIFrame;
+    KbSearch: TKbSearch;
+    Lookup: TLookup;
+    MultiSelect: TMultiSelect;
+    NumberControl: TNumberControl;
+    OptionSetControl: TOptionSetControl;
+    StringControl: TStringControl;
+    Subgrid: TSubgrid;
+    WebResource: TWebResource;
+  };
+  /**
+   * Interface for a generic {XRMXRM}.Page
+   */
+  interface FormContext extends {XRMXRM}.PageBase<any, any, any> {
+    /**
+     * Generic getAttribute
+     */
+    getAttribute(attrName: string): {XRMXRM}.Attribute<any> | undefined;
+    /**
+     * Generic getControl
+     */
+    getControl(ctrlName: string): {XRMXRM}.AnyControl | undefined;
   }
-
-  type FormControlsBase<
-      TAll extends string, 
-      TAttributeControl extends string,
-      TBaseControl extends string,
-      TBooleanControl extends string,
-      TDateControl extends string,
-      TIFrame extends string,
-      TKbSearch extends string,
-      TLookup extends string,
-      TMultiSelect extends string,
-      TNumberControl extends string,
-      TOptionSetControl extends string,
-      TStringControl extends string,
-      TSubgrid extends string,
-      TWebResource extends string
-      > = {
-     All: TAll;
-     AttributeControl: TAttributeControl;
-     BaseControl: TBaseControl;
-     BooleanControl: TBooleanControl;
-     DateControl: TDateControl;
-     IFrame: TIFrame;
-     KbSearch: TKbSearch;
-     Lookup: TLookup;
-     MultiSelect: TMultiSelect;
-     NumberControl: TNumberControl;
-     OptionSetControl: TOptionSetControl;
-     StringControl: TStringControl;
-     Subgrid: TSubgrid;
-     WebResource: TWebResource;
+  interface BaseExecutionContext extends {XRMXRM}.ExecutionContext<any, any> {
+    getFormContext<T extends {XRMXRM}.PageBase<any, any, any>>(): T;
   }
 }
 ".Replace("{XRMXRM}", xrm));

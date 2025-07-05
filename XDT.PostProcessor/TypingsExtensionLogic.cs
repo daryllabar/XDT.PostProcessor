@@ -10,7 +10,6 @@ namespace XDT.PostProcessor
     public class TypingsExtensionLogic
     {
         private static readonly HashSet<string> NonNullableValueTypes = new HashSet<string>{
-            "StringAttributeNames",
             "BooleanAttributeNames"
         };
 
@@ -144,53 +143,53 @@ namespace XDT.PostProcessor
             {
                 return false;
             }
-            file[file.Length-1] = file[file.Length - 1] + Environment.NewLine + Environment.NewLine + @"  // Added via XDT.PostProcessor
-  declare namespace " + Settings.XrmNamespacePrefix + @" {
-    type EmptyFormAttributes = FormAttributesBase<string, string, string, string, string, string, string, string>;
-    type EmptyFormControls = FormControlsBase<string, string, string, string, string, string, string, string, string, string, string, string, string, string>;
-    type FormAttributesBase<TAll extends string, TBoolean extends string, TDate extends string, TLookup extends string, TMultiSelect extends string, TNumber extends string, TOptionSet extends string, TString extends string> = {
-      All: TAll;
-      Boolean: TBoolean;
-      Date: TDate;
-      Lookup: TLookup;
-      MultiSelect: TMultiSelect;
-      Number: TNumber;
-      OptionSet: TOptionSet;
-      String: TString;
-    };
-    type FormControlsBase<TAll extends string, TAttributeControl extends string, TBaseControl extends string, TBooleanControl extends string, TDateControl extends string, TIFrame extends string, TKbSearch extends string, TLookup extends string, TMultiSelect extends string, TNumberControl extends string, TOptionSetControl extends string, TStringControl extends string, TSubgrid extends string, TWebResource extends string> = {
-      All: TAll;
-      AttributeControl: TAttributeControl;
-      BaseControl: TBaseControl;
-      BooleanControl: TBooleanControl;
-      DateControl: TDateControl;
-      IFrame: TIFrame;
-      KbSearch: TKbSearch;
-      Lookup: TLookup;
-      MultiSelect: TMultiSelect;
-      NumberControl: TNumberControl;
-      OptionSetControl: TOptionSetControl;
-      StringControl: TStringControl;
-      Subgrid: TSubgrid;
-        WebResource: TWebResource;
-    };
+            file[file.Length-1] = file[file.Length - 1] + Environment.NewLine + Environment.NewLine + @"// Added via XDT.PostProcessor
+declare namespace " + Settings.XrmNamespacePrefix + @" {
+  type EmptyFormAttributes = FormAttributesBase<string, string, string, string, string, string, string, string>;
+  type EmptyFormControls = FormControlsBase<string, string, string, string, string, string, string, string, string, string, string, string, string, string>;
+  type FormAttributesBase<TAll extends string, TBoolean extends string, TDate extends string, TLookup extends string, TMultiSelect extends string, TNumber extends string, TOptionSet extends string, TString extends string> = {
+    All: TAll;
+    Boolean: TBoolean;
+    Date: TDate;
+    Lookup: TLookup;
+    MultiSelect: TMultiSelect;
+    Number: TNumber;
+    OptionSet: TOptionSet;
+    String: TString;
+  };
+  type FormControlsBase<TAll extends string, TAttributeControl extends string, TBaseControl extends string, TBooleanControl extends string, TDateControl extends string, TIFrame extends string, TKbSearch extends string, TLookup extends string, TMultiSelect extends string, TNumberControl extends string, TOptionSetControl extends string, TStringControl extends string, TSubgrid extends string, TWebResource extends string> = {
+    All: TAll;
+    AttributeControl: TAttributeControl;
+    BaseControl: TBaseControl;
+    BooleanControl: TBooleanControl;
+    DateControl: TDateControl;
+    IFrame: TIFrame;
+    KbSearch: TKbSearch;
+    Lookup: TLookup;
+    MultiSelect: TMultiSelect;
+    NumberControl: TNumberControl;
+    OptionSetControl: TOptionSetControl;
+    StringControl: TStringControl;
+    Subgrid: TSubgrid;
+    WebResource: TWebResource;
+  };
+  /**
+   * Interface for a generic XdtXrm.Page
+   */
+  interface FormContext extends XdtXrm.PageBase<any, any, any> {
     /**
-     * Interface for a generic XdtXrm.Page
+     * Generic getAttribute
      */
-    interface FormContext extends XdtXrm.PageBase<any, any, any> {
-      /**
-       * Generic getAttribute
-       */
-      getAttribute(attrName: string): XdtXrm.Attribute<any> | undefined;
-      /**
-       * Generic getControl
-       */
-      getControl(ctrlName: string): XdtXrm.AnyControl | undefined;
-    }
-    interface BaseExecutionContext extends XdtXrm.ExecutionContext<any, any> {
-      getFormContext<T extends XdtXrm.PageBase<any, any, any>>(): T;
-    }
+    getAttribute(attrName: string): XdtXrm.Attribute<any> | undefined;
+    /**
+     * Generic getControl
+     */
+    getControl(ctrlName: string): XdtXrm.AnyControl | undefined;
   }
+  interface BaseExecutionContext extends XdtXrm.ExecutionContext<any, any> {
+    getFormContext<T extends XdtXrm.PageBase<any, any, any>>(): T;
+  }
+}
 ";
             return true;
         }
@@ -277,7 +276,7 @@ namespace XDT.PostProcessor
             }.Where(l => !string.IsNullOrWhiteSpace(l)), "    // Base Attributes");
             contents.AddSortedSection(form.AttributesByTypeName
                                           .Where(kvp => !DefinedTypes.Attributes.Contains(kvp.Key))
-                                          .Select(namesForType => $@"    type {namesForType.Key} = {namesForType.Value.Select(v => v.Name).ToSortedPipeStringDelimited(true)};"), "    // Form Specific Attribute Types");
+                                          .Select(namesForType => $"    type {namesForType.Key} = {namesForType.Value.Select(v => v.Name).ToSortedPipeStringDelimited(true)};"), "    // Form Specific Attribute Types");
         }
 
         private static List<string> GetPopulatedBaseAttributeTypes(ParsedXdtForm form)
@@ -351,7 +350,7 @@ namespace XDT.PostProcessor
             }.Where(l => !string.IsNullOrWhiteSpace(l)), "    // Base Controls");
             contents.AddSortedSection(form.ControlsByTypeName
                                           .Where(kvp => !DefinedTypes.Controls.Contains(kvp.Key))
-                                          .Select(namesForType => $@"    type {namesForType.Key} = {namesForType.Value.Select(v => v.Name).ToSortedPipeStringDelimited(true)};"), "    // Form Specific Control Types");
+                                          .Select(namesForType => $"    type {namesForType.Key} = {namesForType.Value.Select(v => v.Name).ToSortedPipeStringDelimited(true)};"), "    // Form Specific Control Types");
         }
 
         private static List<string> GetPopulatedBaseControlTypes(ParsedXdtForm form)
@@ -418,13 +417,10 @@ namespace XDT.PostProcessor
         {
             contents.AddRange(from namesForType in form.AttributesByTypeName.OrderBy(k => k.Key)
                 let first = namesForType.Value.First()
-                let nullable = NonNullableValueTypes.Contains(namesForType.Key)
-                    ? string.Empty
-                    : " | null"
-                select $@"    addOnChange(attributeName: {formName}.{namesForType.Key}, handler: (context?: {Settings.XrmNamespacePrefix}.ExecutionContext<{first.AttributeType}, undefined>) => any): void;");
+                select $"    addOnChange(attributeName: {formName}.{namesForType.Key}, handler: (context?: {Settings.XrmNamespacePrefix}.ExecutionContext<{first.AttributeType}, undefined>) => any): void;");
             if (form.AttributesByTypeName.Count > 0)
             {
-                contents.Add($@"    addOnChange(attributeNames: {formName}.AttributeNames[], handler: (context?: {Settings.XrmNamespacePrefix}.ExecutionContext<{Settings.XrmNamespacePrefix}.Attribute<any>, undefined>) => any): void;");
+                contents.Add($"    addOnChange(attributeNames: {formName}.AttributeNames[], handler: (context?: {Settings.XrmNamespacePrefix}.ExecutionContext<{Settings.XrmNamespacePrefix}.Attribute<any>, undefined>) => any): void;");
             }
         }
 
@@ -435,7 +431,7 @@ namespace XDT.PostProcessor
                 let nullable = NonNullableValueTypes.Contains(namesForType.Key)
                     ? string.Empty
                     : " | null"
-                select $@"    getValue(attributeName: {formName}.{namesForType.Key}): {first.ValueType}{nullable};");
+                select $"    getValue(attributeName: {formName}.{namesForType.Key}): {first.ValueType}{nullable};");
         }
 
         public void WriteSetValues(List<string> contents, string formName, ParsedXdtForm form)
@@ -445,7 +441,7 @@ namespace XDT.PostProcessor
                 let nullable = NonNullableValueTypes.Contains(namesForType.Key)
                     ? string.Empty
                     : " | null"
-                select $@"    setValue(attributeName: {formName}.{namesForType.Key}, value: {first.ValueType}{nullable}, fireOnChange?: boolean): void;");
+                select $"    setValue(attributeName: {formName}.{namesForType.Key}, value: {first.ValueType}{nullable}, fireOnChange?: boolean): void;");
         }
 
         public static string GetAllAttributeAndControlNamesTypeUnion(ParsedXdtForm form, string formName)
